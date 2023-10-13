@@ -11,6 +11,9 @@ python = "^3.11"
 psycopg2-binary = "^2.9.9"
 fastapi = "^0.103.2"
 loguru = "^0.7.2"
+sqlalchemy = "^2.0.22"
+passlib = "^1.7.4"
+colorama = "^0.4.6"
 
 
 [build-system]

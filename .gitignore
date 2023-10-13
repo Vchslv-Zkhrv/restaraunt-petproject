@@ -2,4 +2,5 @@ venv
 media
 *lock*
 frontend/node_modules
+*__pycache__*
 
