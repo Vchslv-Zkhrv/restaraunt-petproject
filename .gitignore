@@ -3,4 +3,5 @@ media
 *lock*
 frontend/node_modules
 *__pycache__*
+setup
 
