@@ -10,3 +10,25 @@ task_access_roles = _Literal[
     "delete"
 ]
 
+user_roles = _Literal[
+    "default_actor",
+    "kitchen_area",
+    "employee",
+    "customer"
+]
+
+units = _Literal[
+    "kg",
+    "pcs",
+    "l"
+]
+
+product_statuses = _Literal[
+    "active",
+    "seasonal: active",
+    "seasonal: inactive",
+    "inactive",
+    "deleted"
+    "out of stock"
+]
+
