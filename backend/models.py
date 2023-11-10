@@ -3,7 +3,7 @@ from typing import Optional as _Opt, List as _List
 
 from sqlalchemy import Integer as _Int, String as _Str, Float as _Float, DateTime as _Dt, \
     Boolean as _Bool, Column as _Column, ForeignKey as _Fk
-from sqlalchemy.orm import relationship as _rel, Mapped as _Map 
+from sqlalchemy.orm import relationship as _rel, Mapped as _Map
 from sqlalchemy.schema import PrimaryKeyConstraint as _PKConstraint
 import passlib.hash as _hash
 
