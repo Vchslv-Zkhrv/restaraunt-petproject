@@ -301,3 +301,9 @@ class Product(_Schema):
     status: _literals.product_statuses = _Field(default="inactive")
     own_production: bool = _Field(alias="ownProduction")
     ingridients: _List[ProductIngridient]
+
+
+class ProductWithCount(Product):
+
+    count: int = _Field(default=1)
+
