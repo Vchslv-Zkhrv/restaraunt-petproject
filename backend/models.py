@@ -102,7 +102,7 @@ class User(_Base):
     verifications: _Map[_List["Verification"]] = _rel(back_populates="user")
 
     def verify_password(self, password: str) -> bool:
-        return _hash.bcrypt.verify(password, str(self.hashed_password))
+        return _hash.bcrypt.verify(password, self.hashed_password) # pyright: ignore
 
 
 class Verification(_Base):

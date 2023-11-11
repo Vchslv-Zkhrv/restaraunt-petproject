@@ -14,7 +14,9 @@ user_roles = _Literal[
     "default_actor",
     "kitchen_area",
     "employee",
-    "customer"
+    "customer",
+    "root",
+    "admin"
 ]
 
 units = _Literal[
