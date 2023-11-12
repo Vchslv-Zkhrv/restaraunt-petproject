@@ -6,6 +6,17 @@ import models as _models
 import database as _db
 
 
+def get_db_session():
+    """
+    creates db session, yields it and closes after use
+    """
+    db = _db.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 def clean_database():
     _db.Base.metadata.drop_all(bind=_db.engine)
     _db.Base.metadata.create_all(bind=_db.engine)
