@@ -5,4 +5,5 @@ frontend/node_modules
 *__pycache__*
 setup
 .session
+*logs*
 
