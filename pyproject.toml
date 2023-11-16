@@ -16,6 +16,7 @@ pillow = "^10.1.0"
 loguru = "^0.7.2"
 psycopg2-binary = "^2.9.9"
 colorama = "^0.4.6"
+reportlab = "^4.0.7"
 
 
 [build-system]
