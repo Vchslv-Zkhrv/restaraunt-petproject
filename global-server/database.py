@@ -1,12 +1,10 @@
-import sqlalchemy as _sql
-import sqlalchemy.orm as _orm
-from config import getenv as _env
+from config import env as _env
+from sqlalchemy.ext.asyncio import AsyncSession as _Session
+from sqlalchemy.ext.asyncio import create_async_engine as _create_async_engine
+from sqlalchemy.ext.declarative import declarative_base as _declarative_base
+from sqlalchemy.orm import sessionmaker as _sessionmaker
 
 
-engine = _sql.create_engine(_env("DB_CONNECT_URL"))
-
-
-SessionLocal = _orm.sessionmaker(bind=engine)
-
-
-Base = _orm.declarative_base()
+engine = _create_async_engine(_env.db_connect_url)
+Base = _declarative_base()
+AsyncSession = _sessionmaker(engine, class_=_Session, expire_on_commit=False)  # pyright: ignore

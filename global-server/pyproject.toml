@@ -8,15 +8,20 @@ packages = [{include = "restaraunt_petproject"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "0.101.0"
 aiogram = "^3.1.1"
-sqlalchemy = "^2.0.23"
-alembic = "^1.12.1"
-aiopg = "^1.4.0"
+fastapi = "0.101.0"
+loguru = "^0.7.2"
 passlib = "^1.7.4"
+colorama = "^0.4.6"
+python-dotenv = "^1.0.0"
+asyncpg = "^0.29.0"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.23"}
 
-[tool.poetry.groups.dev.dependencies]
+[tool.poetry.group.dev.dependencies]
 pre-commit = "^3.5.0"
+black = "^23.11.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
 
 
 [build-system]

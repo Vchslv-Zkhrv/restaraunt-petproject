@@ -824,13 +824,13 @@ class WriteOffReason(_Base):
 
 
 class WriteOffReasonGroup(_Base):
-    __tablename__ = "WriteOffReasonGrop"
+    __tablename__ = "WriteOffReasonGroup"
 
     id = _Column(_Int, primary_key=True, index=True)
     name = _Column(_Str, unique=True, nullable=False, index=True)
     description = _Column(_Str, nullable=False, default="")
 
-    reasouns: _Map[_List["WriteOffReason"]] = _rel(back_populates="group")
+    reasons: _Map[_List["WriteOffReason"]] = _rel(back_populates="group")
 
 
 class WriteOff(_Base):

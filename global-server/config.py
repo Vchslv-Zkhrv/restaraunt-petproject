@@ -1,8 +1,10 @@
-import os as _os
+from dotenv import dotenv_values as _values
+from pydantic import BaseModel as _BM
+from pydantic import Field as _Field
 
 
-def getenv(name: str) -> str:
-    value = _os.getenv(name)
-    if not value:
-        raise OSError(f"{name} environment variable not set")
-    return value
+class Environment(_BM):
+    db_connect_url: str = _Field(alias="DB_CONNECT_URL")
+
+
+env = Environment(**_values(".env"))  # pyright: ignore
