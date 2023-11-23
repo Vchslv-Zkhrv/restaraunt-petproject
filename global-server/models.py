@@ -2,6 +2,8 @@ from datetime import datetime as _dt
 from typing import List as _List
 from typing import Optional as _Opt
 
+import os as _os
+
 import passlib.hash as _hash
 from database import Base as _Base
 from sqlalchemy import Boolean as _Bool
@@ -979,8 +981,8 @@ class Task(_Base):
         if not self.start_execution:  # pyright: ignore
             return False
         elif (
-            not self.execution_started and self.start_execution <= _dt.utcnow()
-        ):  # pyright: ignore
+            not self.execution_started and self.start_execution <= _dt.utcnow()  # pyright: ignore
+        ):
             return True
         else:
             return self.execution_started <= self.start_execution  # pyright: ignore
