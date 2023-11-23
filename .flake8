@@ -1,4 +1,5 @@
 [flake8]
-exclude = .git, frontend, .venv, __init__.py
+exclude = .git, frontend, .venv, __init__.py, literals.py
 max-line-length = 99
+ignore = W391
 

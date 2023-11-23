@@ -1,17 +1,22 @@
 from datetime import datetime as _dt
-from typing import Optional as _Opt, List as _List
+from typing import List as _List
+from typing import Optional as _Opt
 
-from sqlalchemy import Integer as _Int, String as _Str, Float as _Float, DateTime as _Dt, \
-    Boolean as _Bool, Column as _Column, ForeignKey as _Fk
-from sqlalchemy.orm import relationship as _rel, Mapped as _Map
-from sqlalchemy.schema import PrimaryKeyConstraint as _PKConstraint
 import passlib.hash as _hash
-
 from database import Base as _Base
+from sqlalchemy import Boolean as _Bool
+from sqlalchemy import Column as _Column
+from sqlalchemy import DateTime as _Dt
+from sqlalchemy import Float as _Float
+from sqlalchemy import ForeignKey as _Fk
+from sqlalchemy import Integer as _Int
+from sqlalchemy import String as _Str
+from sqlalchemy.orm import Mapped as _Map
+from sqlalchemy.orm import relationship as _rel
+from sqlalchemy.schema import PrimaryKeyConstraint as _PKConstraint
 
 
 class Actor(_Base):
-
     __tablename__ = "Actor"
 
     """
@@ -30,7 +35,6 @@ class Actor(_Base):
 
 
 class DefaultActor(_Base):
-
     __tablename__ = "DefaultActor"
 
     """
@@ -44,7 +48,6 @@ class DefaultActor(_Base):
 
 
 class TaskType(_Base):
-
     __tablename__ = "TaskType"
 
     """
@@ -54,14 +57,13 @@ class TaskType(_Base):
     id = _Column(_Int, primary_key=True, index=True)
     name = _Column(_Str, unique=True, index=True)
 
-    employee_position_access_levels: _Map[_List["EmployeePositionAccessLevel"]] = \
-        _rel(back_populates="task_type")
-    personal_access_levels: _Map[_List["ActorAccessLevel"]] = \
-        _rel(back_populates="task_type")
+    employee_position_access_levels: _Map[_List["EmployeePositionAccessLevel"]] = _rel(
+        back_populates="task_type"
+    )
+    personal_access_levels: _Map[_List["ActorAccessLevel"]] = _rel(back_populates="task_type")
 
 
 class ActorAccessLevel(_Base):
-
     __tablename__ = "ActorAccessLevel"
 
     """
@@ -80,7 +82,6 @@ class ActorAccessLevel(_Base):
 
 
 class TaskTarget(_Base):
-
     __tablename__ = "TaskTarget"
 
     """
@@ -104,7 +105,6 @@ class TaskTarget(_Base):
 
 
 class SubTask(_Base):
-
     __tablename__ = "SubTask"
 
     """
@@ -122,7 +122,6 @@ class SubTask(_Base):
 
 
 class User(_Base):
-
     __tablename__ = "User"
 
     """
@@ -143,7 +142,7 @@ class User(_Base):
     address = _Column(_Str)
     last_online = _Column(_Dt, nullable=False, default=_dt.utcnow, index=True)
     created = _Column(_Dt, nullable=False, index=True)
-    deleted = _Column(_Dt) 
+    deleted = _Column(_Dt)
 
     actor: _Map["Actor"] = _rel(back_populates="user")
     employee: _Map[_Opt["Employee"]] = _rel(back_populates="user")
@@ -151,11 +150,10 @@ class User(_Base):
     verifications: _Map[_List["Verification"]] = _rel(back_populates="user")
 
     def verify_password(self, password: str) -> bool:
-        return _hash.bcrypt.verify(password, self.hashed_password) # pyright: ignore
+        return _hash.bcrypt.verify(password, self.hashed_password)  # pyright: ignore
 
 
 class Verification(_Base):
-
     __tablename__ = "Verification"
 
     """
@@ -171,7 +169,6 @@ class Verification(_Base):
 
 
 class EmployeePosition(_Base):
-
     __tablename__ = "EmployeePosition"
 
     """
@@ -188,7 +185,6 @@ class EmployeePosition(_Base):
 
 
 class EmployeePositionAccessLevel(_Base):
-
     __tablename__ = "EmployeePositionAccessLevel"
 
     """
@@ -206,7 +202,6 @@ class EmployeePositionAccessLevel(_Base):
 
 
 class Employee(_Base):
-
     __tablename__ = "Employee"
 
     """
@@ -227,7 +222,6 @@ class Employee(_Base):
 
 
 class Shift(_Base):
-
     __tablename__ = "Shift"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -237,7 +231,6 @@ class Shift(_Base):
 
 
 class Customer(_Base):
-
     __tablename__ = "Customer"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -246,12 +239,12 @@ class Customer(_Base):
 
     user: _Map["User"] = _rel(back_populates="customer")
     favorites: _Map[_List["CustomerFavoriteProduct"]] = _rel(back_populates="customer")
-    shopping_cart_products: _Map[_List["CustomerFavoriteProduct"]] = \
-        _rel(back_populates="customer")
+    shopping_cart_products: _Map[_List["CustomerFavoriteProduct"]] = _rel(
+        back_populates="customer"
+    )
 
 
 class Material(_Base):
-
     __tablename__ = "Material"
 
     """
@@ -276,7 +269,6 @@ class Material(_Base):
 
 
 class MaterialGroup(_Base):
-
     __tablename__ = "MaterialGroup"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -287,7 +279,6 @@ class MaterialGroup(_Base):
 
 
 class MaterialSubGroup(_Base):
-
     __tablename__ = "MaterialSubGroup"
 
     parent_id = _Column(_Int, _Fk("MaterialGroup.id"), primary_key=True)
@@ -300,7 +291,6 @@ class MaterialSubGroup(_Base):
 
 
 class Supply(_Base):
-
     __tablename__ = "Supply"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -312,7 +302,6 @@ class Supply(_Base):
 
 
 class SupplyItem(_Base):
-
     __tablename__ = "SupplyItem"
 
     supply_id = _Column(_Int, _Fk("Supply.id"), primary_key=True)
@@ -327,7 +316,6 @@ class SupplyItem(_Base):
 
 
 class Ingridient(_Base):
-
     __tablename__ = "Ingridient"
 
     """
@@ -344,12 +332,12 @@ class Ingridient(_Base):
 
     materials: _Map[_List["IngridientMaterial"]] = _rel(back_populates="ingridient")
     products: _Map[_List["ProductIngridient"]] = _rel(back_populates="ingridient")
-    available_to_add_in_products: _Map[_List["ProductAvailableExtraIngridient"]] = \
-        _rel(back_populates="ingridient")
+    available_to_add_in_products: _Map[_List["ProductAvailableExtraIngridient"]] = _rel(
+        back_populates="ingridient"
+    )
 
 
 class IngridientMaterial(_Base):
-
     __tablename__ = "IngridientMaterial"
 
     """
@@ -367,7 +355,6 @@ class IngridientMaterial(_Base):
 
 
 class Product(_Base):
-
     __tablename__ = "Product"
 
     """
@@ -385,20 +372,22 @@ class Product(_Base):
     tare_id = _Column(_Int, _Fk("Tare.id"), nullable=True)
 
     ingridients: _Map[_List["ProductIngridient"]] = _rel(back_populates="product")
-    customers_who_added_to_favorites: _Map[_List["CustomerFavoriteProduct"]] = \
-        _rel(back_populates="product")
-    customers_who_added_to_shopping_cart: _Map[_List["CustomerShoppingCartProduct"]] = \
-        _rel(back_populates="product")
+    customers_who_added_to_favorites: _Map[_List["CustomerFavoriteProduct"]] = _rel(
+        back_populates="product"
+    )
+    customers_who_added_to_shopping_cart: _Map[_List["CustomerShoppingCartProduct"]] = _rel(
+        back_populates="product"
+    )
     customer_orders: _Map[_List["CustomerOrderProduct"]] = _rel(back_populates="product")
-    available_extra_ingridients: _Map[_List["ProductAvailableExtraIngridient"]] = \
-        _rel(back_populates="product")
+    available_extra_ingridients: _Map[_List["ProductAvailableExtraIngridient"]] = _rel(
+        back_populates="product"
+    )
     product_category: _Map["ProductCategoryProduct"] = _rel(back_populates="product")
     discounts: _Map[_List["DiscountOptionProduct"]] = _rel(back_populates="product")
     tare: _Map[_Opt["Tare"]] = _rel(back_populates="products")
 
 
 class ProductIngridient(_Base):
-
     __tablename__ = "ProductIngridient"
 
     """
@@ -419,7 +408,6 @@ class ProductIngridient(_Base):
 
 
 class CustomerFavoriteProduct(_Base):
-
     __tablename__ = "CustomerFavoriteProduct"
 
     """
@@ -436,7 +424,6 @@ class CustomerFavoriteProduct(_Base):
 
 
 class CustomerShoppingCartProduct(_Base):
-
     __tablename__ = "CustomerShoppingCartProduct"
 
     """
@@ -445,7 +432,7 @@ class CustomerShoppingCartProduct(_Base):
 
     customer_id = _Column(_Int, _Fk("Customer.id"), primary_key=True)
     product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
-    count  = _Column(_Int, nullable=False, default=1)
+    count = _Column(_Int, nullable=False, default=1)
 
     customer: _Map["Customer"] = _rel(back_populates="shopping_cart_products")
     product: _Map["Product"] = _rel(back_populates="customers_who_added_to_shopping_cart")
@@ -454,7 +441,6 @@ class CustomerShoppingCartProduct(_Base):
 
 
 class CustomerOrder(_Base):
-
     __tablename__ = "CustomerOrder"
 
     """
@@ -469,11 +455,10 @@ class CustomerOrder(_Base):
     products: _Map[_List["CustomerOrderProduct"]] = _rel(back_populates="customer_order")
     online_order: _Map[_Opt["OnlineOrder"]] = _rel(back_populates="customer_order")
     waiter_order: _Map[_Opt["WaiterOrder"]] = _rel(back_populates="customer_order")
-    payment: _Map["CustomerPayment"]  = _rel(back_populates="order")
+    payment: _Map["CustomerPayment"] = _rel(back_populates="order")
 
 
 class CustomerOrderProduct(_Base):
-
     __tablename__ = "CustomerOrderProduct"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -489,7 +474,6 @@ class CustomerOrderProduct(_Base):
 
 
 class OnlineOrder(_Base):
-
     __tablename__ = "OnlineOrder"
 
     """
@@ -504,7 +488,6 @@ class OnlineOrder(_Base):
 
 
 class ProductAvailableExtraIngridient(_Base):
-
     __tablename__ = "ProductAvailableExtraIngridient"
 
     """
@@ -522,7 +505,6 @@ class ProductAvailableExtraIngridient(_Base):
 
 
 class CustomerOrderProductIngridientChange(_Base):
-
     __tablename__ = "CustomerOrderProductIngridientChange"
 
     """
@@ -540,7 +522,6 @@ class CustomerOrderProductIngridientChange(_Base):
 
 
 class CustomerOrderProductExtraIngridient(_Base):
-
     __tablename__ = "CustomerOrderExtraIngridient"
 
     """
@@ -558,7 +539,6 @@ class CustomerOrderProductExtraIngridient(_Base):
 
 
 class Table(_Base):
-
     __tablename__ = "Table"
 
     """
@@ -574,7 +554,6 @@ class Table(_Base):
 
 
 class TableLocation(_Base):
-
     __tablename__ = "TableLocation"
 
     """
@@ -588,7 +567,6 @@ class TableLocation(_Base):
 
 
 class WaiterOrder(_Base):
-
     __tablename__ = "WaiterOrder"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -600,7 +578,6 @@ class WaiterOrder(_Base):
 
 
 class Salary(_Base):
-
     __tablename__ = "Salary"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -613,7 +590,6 @@ class Salary(_Base):
 
 
 class AllergicFlag(_Base):
-
     __tablename__ = "AllergicFlag"
 
     """
@@ -627,7 +603,6 @@ class AllergicFlag(_Base):
 
 
 class MaterialAllergicFlag(_Base):
-
     __tablename__ = "MaterialAllergicFlag"
 
     """
@@ -644,7 +619,6 @@ class MaterialAllergicFlag(_Base):
 
 
 class ProductCategory(_Base):
-
     __tablename__ = "ProductCategory"
 
     """
@@ -659,7 +633,6 @@ class ProductCategory(_Base):
 
 
 class ProductCategoryProduct(_Base):
-
     __tablename__ = "ProductCategoryProduct"
 
     product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
@@ -672,7 +645,6 @@ class ProductCategoryProduct(_Base):
 
 
 class KitchenArea(_Base):
-
     __tablename__ = "KitchenArea"
 
     """
@@ -684,12 +656,12 @@ class KitchenArea(_Base):
     name = _Column(_Str, unique=True, nullable=False, index=True)
 
     actor: _Map["Actor"] = _rel(back_populates="kitchen_area")
-    product_categories: _Map[_List["KitchenAreaProductCategory"]] = \
-        _rel(back_populates="kitchen_area")
+    product_categories: _Map[_List["KitchenAreaProductCategory"]] = _rel(
+        back_populates="kitchen_area"
+    )
 
 
 class KitchenAreaProductCategory(_Base):
-
     __tablename__ = "KitchenAreaProductCategory"
 
     """
@@ -706,7 +678,6 @@ class KitchenAreaProductCategory(_Base):
 
 
 class CustomerPayment(_Base):
-
     __tablename__ = "CustomerPayment"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -718,7 +689,6 @@ class CustomerPayment(_Base):
 
 
 class Deliveryman(_Base):
-
     __tablename__ = "Deliveryman"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -731,7 +701,6 @@ class Deliveryman(_Base):
 
 
 class DiscountGroup(_Base):
-
     __tablename__ = "DiscountGroup"
 
     """
@@ -747,7 +716,6 @@ class DiscountGroup(_Base):
 
 
 class Discount(_Base):
-
     __tablename__ = "Discount"
 
     """
@@ -770,7 +738,6 @@ class Discount(_Base):
 
 
 class CustomerOrderDiscount(_Base):
-
     __tablename__ = "CustomerOrderDiscount"
 
     """
@@ -785,7 +752,6 @@ class CustomerOrderDiscount(_Base):
 
 
 class DiscountOption(_Base):
-
     __tablename__ = "DiscountOption"
 
     """
@@ -801,7 +767,6 @@ class DiscountOption(_Base):
 
 
 class DiscountOptionProduct(_Base):
-
     __tablename__ = "DiscountOptionProduct"
 
     """
@@ -816,7 +781,6 @@ class DiscountOptionProduct(_Base):
 
 
 class KitchenOrder(_Base):
-
     __tablename__ = "KitchenOrder"
 
     """
@@ -831,7 +795,6 @@ class KitchenOrder(_Base):
 
 
 class KitchenOrderMaterial(_Base):
-
     __tablename__ = "KitchenOrderMaterial"
 
     kitchen_order_id = _Column(_Int, _Fk("KitchenOrder.id"), primary_key=True)
@@ -845,7 +808,6 @@ class KitchenOrderMaterial(_Base):
 
 
 class WriteOffReason(_Base):
-
     __tablename__ = "WriteOffReason"
 
     """
@@ -857,13 +819,11 @@ class WriteOffReason(_Base):
     descritption = _Column(_Str)
     group_id = _Column(_Int, _Fk("WriteOffReasonGroup.id"), nullable=False)
 
-
     group: _Map["WriteOffReasonGroup"] = _rel(back_populates="reasons")
     writeoffs: _Map[_List["WriteOff"]] = _rel(back_populates="reason")
 
 
 class WriteOffReasonGroup(_Base):
-
     __tablename__ = "WriteOffReasonGrop"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -874,7 +834,6 @@ class WriteOffReasonGroup(_Base):
 
 
 class WriteOff(_Base):
-
     __tablename__ = "WriteOff"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -882,12 +841,11 @@ class WriteOff(_Base):
     reason_id = _Column(_Int, _Fk("WriteOffReason.id"), nullable=False, index=True)
 
     task_target: _Map["TaskTarget"] = _rel(back_populates="writeoff")
-    reason: _Map["WriteOffReason"] =  _rel(back_populates="writeoffs")
+    reason: _Map["WriteOffReason"] = _rel(back_populates="writeoffs")
     items: _Map[_List["WriteOffItem"]] = _rel(back_populates="writeoff")
 
 
 class WriteOffItem(_Base):
-
     __tablename__ = "WriteOffItem"
 
     writeoff_id = _Column(_Int, _Fk("WriteOff.id"), primary_key=True)
@@ -901,7 +859,6 @@ class WriteOffItem(_Base):
 
 
 class SupplyPayment(_Base):
-
     __tablename__ = "SupplyPayment"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -913,7 +870,6 @@ class SupplyPayment(_Base):
 
 
 class Tare(_Base):
-
     __tablename__ = "Tare"
 
     """
@@ -931,7 +887,6 @@ class Tare(_Base):
 
 
 class Inventory(_Base):
-
     __tablename__ = "Inventory"
 
     """
@@ -949,7 +904,6 @@ class Inventory(_Base):
 
 
 class InventoryGroup(_Base):
-
     __tablename__ = "InventoryGroup"
 
     id = _Column(_Int, primary_key=True, index=True)
@@ -961,7 +915,6 @@ class InventoryGroup(_Base):
 
 
 class InventorySubGroup(_Base):
-
     __tablename__ = "InventorySubGroup"
 
     parent_id = _Column(_Int, _Fk("InventoryGroup.id"), primary_key=True)
@@ -974,7 +927,6 @@ class InventorySubGroup(_Base):
 
 
 class Item(_Base):
-
     __tablename__ = "Item"
 
     """
@@ -990,7 +942,6 @@ class Item(_Base):
 
 
 class Task(_Base):
-
     __tablename__ = "Task"
 
     """
@@ -1025,19 +976,20 @@ class Task(_Base):
 
     @property
     def is_started_late(self) -> bool:
-        if not self.start_execution: #pyright: ignore
+        if not self.start_execution:  # pyright: ignore
             return False
-        elif not self.execution_started and self.start_execution <= _dt.utcnow(): #pyright: ignore
+        elif (
+            not self.execution_started and self.start_execution <= _dt.utcnow()
+        ):  # pyright: ignore
             return True
         else:
-            return self.execution_started <= self.start_execution #pyright: ignore
+            return self.execution_started <= self.start_execution  # pyright: ignore
 
     @property
     def is_completed_late(self) -> bool:
-        if not self.complete_before: #pyright: ignore
+        if not self.complete_before:  # pyright: ignore
             return False
-        elif not self.completed and self.complete_before <= _dt.utcnow(): #pyright: ignore
+        elif not self.completed and self.complete_before <= _dt.utcnow():  # pyright: ignore
             return True
         else:
-            return self.complete_before < self.completed #pyright: ignore
-
+            return self.complete_before < self.completed  # pyright: ignore

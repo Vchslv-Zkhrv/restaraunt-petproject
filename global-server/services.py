@@ -1,9 +1,8 @@
 import sys as _sys
 
-from colorama import Fore as _Fore, Style as _Style
-
-import models as _models
 import database as _db
+from colorama import Fore as _Fore
+from colorama import Style as _Style
 
 
 def get_db_session():
@@ -23,9 +22,7 @@ def clean_database():
 
 
 if __name__ == "__main__":
-
     if "--clean" in _sys.argv:
         print(f"{_Fore.RED}Database will be cleared{_Style.RESET_ALL}")
         if input("Are you sure? (y/n) ").lower() == "y":
             clean_database()
-

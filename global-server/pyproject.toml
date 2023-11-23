@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "restaraunt-petproject/backend/global-server"
+name = "restaraunt-petproject/global-server"
 version = "0.1.0"
 description = ""
 authors = ["Vchslv-Zkhrv <vchslv.zkhrv@gmail.com>"]

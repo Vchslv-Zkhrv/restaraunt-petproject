@@ -6,4 +6,3 @@ def getenv(name: str) -> str:
     if not value:
         raise OSError(f"{name} environment variable not set")
     return value
-

@@ -1,7 +1,8 @@
 [tool.black]
-line-lenght = 99
-exclude = '''
+line-length = 99
+force-exclude = '''
   frontend/
-  *.venv*
-  *__init__.py*
+  global-server/.venv/
+  local-server/.venv/
+  __init__.py
 '''

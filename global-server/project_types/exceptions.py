@@ -1,4 +1,3 @@
-
 class SecurityException(Exception):
 
     """Main class for security errors"""
@@ -42,4 +41,3 @@ class NoSuchUserError(AuthError):
 class DeletedUserAuthError(AuthError):
 
     """Auth cannot be proceeded: user accounе is marked for deletion"""
-
