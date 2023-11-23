@@ -2,9 +2,6 @@ from datetime import datetime as _dt
 from typing import List as _List
 from typing import Optional as _Opt
 
-import os as _os
-import sys as _sys
-
 import passlib.hash as _hash
 from database import Base as _Base
 from sqlalchemy import Boolean as _Bool
