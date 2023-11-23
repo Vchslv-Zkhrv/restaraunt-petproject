@@ -1,9 +1,10 @@
 venv
 media
 *lock*
-frontend/node_modules
+*node_modules*
 *__pycache__*
 setup
 .session
 *logs*
+*.env*
 

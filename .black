@@ -1,0 +1,7 @@
+[tool.black]
+line-lenght = 99
+exclude = '''
+  frontend/
+  *.venv*
+  *__init__.py*
+'''

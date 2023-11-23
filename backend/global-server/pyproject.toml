@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "restaraunt-petproject/backend/global-server"
+version = "0.1.0"
+description = ""
+authors = ["Vchslv-Zkhrv <vchslv.zkhrv@gmail.com>"]
+readme = "README.md"
+packages = [{include = "restaraunt_petproject"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "0.101.0"
+aiogram = "^3.1.1"
+sqlalchemy = "^2.0.23"
+alembic = "^1.12.1"
+aiopg = "^1.4.0"
+loguru = "^0.7.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

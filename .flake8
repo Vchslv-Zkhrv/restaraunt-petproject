@@ -1,0 +1,4 @@
+[flake8]
+exclude = .git, frontend, .venv, __init__.py
+max-line-length = 99
+
