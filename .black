@@ -3,6 +3,8 @@ line-length = 99
 force-exclude = '''
   frontend/
   global-server/.venv/
+  global-server/migrations/
   local-server/.venv/
+  local-server/migrations/
   __init__.py
 '''
