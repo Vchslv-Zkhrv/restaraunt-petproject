@@ -1,4 +1,5 @@
 from datetime import datetime as _dt
+from datetime import time as _time
 from typing import Dict as _Dict
 from typing import List as _List
 from typing import Optional as _Optional
@@ -14,6 +15,11 @@ class _Schema(_Base):
     class Config:
         orm_mode = True
         arbitrary_types_allowed = True
+
+
+class WeekdayWorkingHours(_Schema):
+    start: _time
+    finish: _time
 
 
 class Actor(_Schema):
@@ -95,14 +101,18 @@ class Verfication(_Schema):
 class EmployeePositionCreate(_Schema):
     name: str
     salary: float
-    expierence_coefficient: float = _Field(alias="expierenceCoefficient", default=1)
+    expierence_coefficient: float = _Field(
+        alias="expierenceCoefficient", default=1
+    )
 
 
 class EmployeePosition(_Schema):
     id: int
     name: str
     salary: float
-    expierence_coefficient: float = _Field(alias="expierenceCoefficient", default=1)
+    expierence_coefficient: float = _Field(
+        alias="expierenceCoefficient", default=1
+    )
 
 
 class EmployeePositionAccessLevel(_Schema):
@@ -253,7 +263,9 @@ class ProductCreate(_Schema):
     status: _literals.product_statuses = _Field(default="inactive")
     own_production: bool = _Field(alias="ownProduction")
     ingridients: _List[ProductIngridient]
-    available_extras: _List[ProductExtraIngridientCreate] = _Field(alias="availableExtras")
+    available_extras: _List[ProductExtraIngridientCreate] = _Field(
+        alias="availableExtras"
+    )
 
 
 class Product(_Schema):
