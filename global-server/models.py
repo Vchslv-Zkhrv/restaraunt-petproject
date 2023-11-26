@@ -1,9 +1,12 @@
 from datetime import datetime as _dt
 from operator import attrgetter as _attr
+from typing import Any as _Any
 from typing import Dict as _Dict
+from typing import Generator as _Generator
 from typing import List as _List
 from typing import Optional as _Opt
 from typing import Tuple as _Tuple
+from typing import TypeVar as _TypeVar
 
 import passlib.hash as _hash
 import project_types as _types
@@ -18,8 +21,14 @@ from sqlalchemy import Integer as _Int
 from sqlalchemy import String as _Str
 from sqlalchemy import Time as _Time
 from sqlalchemy.orm import Mapped as _Map
+from sqlalchemy.orm import reconstructor as _reconstructor
 from sqlalchemy.orm import relationship as _rel
+from sqlalchemy.orm import validates as _validates
 from sqlalchemy.schema import PrimaryKeyConstraint as _PKConstraint
+from typeguard import check_type as _check_type
+
+
+T = _TypeVar("T")
 
 
 class Actor(_Base):
@@ -34,71 +43,87 @@ class Actor(_Base):
 
     # relationships
     created_tasks: _Map[_List["Task"]] = _rel(back_populates="author")
-
     tasks_to_execute: _Map[_List["Task"]] = _rel(back_populates="executor")
-
     tasks_to_inspect: _Map[_List["Task"]] = _rel(back_populates="inspector")
-
     default_actor: _Map[_Opt["DefaultActor"]] = _rel(back_populates="actor")
-
     user: _Map[_Opt["User"]] = _rel(back_populates="actor")
-
-    kitchen_area: _Map[_Opt["KitchenArea"]] = _rel(back_populates="actor")
-
-    restaraunt: _Map[_Opt["Restaraunt"]] = _rel(back_populates="actor")
-
     personal_access_levels: _Map[_List["ActorAccessLevel"]] = _rel(
         back_populates="actor"
     )
 
 
-class Restaraunt(_Base):
-    __tablename__ = "Restaraunt"
+class Restaurant(_Base):
+    __tablename__ = "Restaurant"
 
     """
-    Model describing a restaraunt and it's local server
+    Model describing a restaurant and it's local server
     """
 
     # columns
     id = _Column(_Int, primary_key=True, index=True)
-    actor_id = _Column(
-        _Int, _Fk("Actor.id"), nullable=False, unique=True, index=True
+    default_actor_id = _Column(
+        _Int, _Fk("DefaultActor.id"), nullable=False, unique=True, index=True
     )
     url = _Column(_Str, nullable=False, unique=True, index=True)
     address = _Column(_Str, nullable=False, unique=True, index=True)
     accepts_online_orders = _Column(_Bool, nullable=False, index=True)
 
     # relationships
-    actor: _Map["Actor"] = _rel(back_populates="restaraunt")
-
-    departments: _Map[_List["RestarauntDepartment"]] = _rel(
+    default_actor: _Map["DefaultActor"] = _rel(back_populates="restaurant")
+    external_departments: _Map[_List["RestaurantExternalDepartment"]] = _rel(
+        back_populates="restaurant"
+    )
+    internal_departments: _Map[_List["RestaurantInternalDepartment"]] = _rel(
         back_populates="restaraunt"
+    )
+    employees: _Map[_List["RestaurantEmployee"]] = _rel(
+        back_populates="restaurant"
+    )
+    stock_balance: _Map[_List["MaterialStockBalance"]] = _rel(
+        back_populates="restaurant"
+    )
+    products: _Map[_List["RestaurantProduct"]] = _rel(
+        back_populates="restaurant"
+    )
+    customer_orders: _Map[_List["CustomerOrder"]] = _rel(
+        back_populates="restaurant"
+    )
+    table_locations: _Map[_List["TableLocation"]] = _rel(
+        back_populates="restaurant"
+    )
+    discounts: _Map[_List["RestaurantDiscount"]] = _rel(
+        back_populates="restaurant"
     )
 
 
-class RestarauntDepartment(_Base):
-    __tablename__ = "RestarauntDepartment"
+class RestaurantExternalDepartment(_Base):
+    __tablename__ = "RestaurantExternalDepartment"
 
     """
-    Restaraunt hall / pickup service / drive-thru / delivery
+    Restaurant department that issues orders
+    (hall / pickup service / drive-thru / delivery)
     """
 
     # columns
     id = _Column(_Int, primary_key=True, index=True)
-    restaraunt_id = _Column(
-        _Int, _Fk("Restaraunt.id"), nullable=False, index=True
+    default_actor_id = _Column(
+        _Int, _Fk("DefaultActor.id"), nullable=False, index=True
+    )
+    restaurant_id = _Column(
+        _Int, _Fk("Restaurant.id"), index=True, nullable=False
     )
     type = _Column(_Str, nullable=False, index=True)
 
     # relationships
-    restaraunt: _Map["Restaraunt"] = _rel(back_populates="departments")
-
-    working_hours: _Map[_List["RestarauntDepartmentWorkingHours"]] = _rel(
-        back_populates="department"
+    restaurant: _Map["Restaurant"] = _rel(
+        back_populates="external_departments"
     )
-
-    # composite primary key
-    __table_args__ = (_PKConstraint(id, type), {})
+    working_hours: _Map[
+        _List["RestaurantExternalDepartmentWorkingHours"]
+    ] = _rel(back_populates="department")
+    default_actor: _Map["DefaultActor"] = _rel(
+        back_populates="restaurant_external_department"
+    )
 
     # methods
     @property
@@ -123,25 +148,171 @@ class RestarauntDepartment(_Base):
         }
 
 
-class RestarauntDepartmentWorkingHours(_Base):
-    __tablename__ = "RestarauntDepartmentWorkingHours"
+class RestaurantExternalDepartmentWorkingHours(_Base):
+    __tablename__ = "RestaurantExternalDepartmentWorkingHours"
 
     """
-    Restaraunt department working hours at a weekday
+    Restaurant external department working hours at a weekday
     """
 
     # columns
     department_id = _Column(
-        _Int, _Fk("RestarauntDepartment.id"), primary_key=True
+        _Int, _Fk("RestaurantExternalDepartment.id"), primary_key=True
     )
     weekday = _Column(_Enum(_types.enums.Weekday), primary_key=True)
     start = _Column(_Time, nullable=False, index=True)
     finish = _Column(_Time, nullable=False, index=True)
 
     # relationships
-    department: _Map["RestarauntDepartment"] = _rel(
+    department: _Map["RestaurantExternalDepartment"] = _rel(
         back_populates="working_hours"
     )
+
+
+class RestaurantInternalDepartment(_Base):
+    __tablename__ = "RestaurantInternalDepartment"
+
+    """
+    Restaurant department not involved in issuing orders
+    """
+
+    # columns
+    id = _Column(_Int, primary_key=True, index=True)
+    name = _Column(_Str, nullable=False, index=True)
+    default_actor_id = _Column(
+        _Int, _Fk("DefaultActor.id"), nullable=False, index=True
+    )
+    restaurant_id = _Column(
+        _Int, _Fk("Restaurant.id"), index=True, nullable=False
+    )
+    type = _Column(_Str, nullable=False, index=True)
+
+    # relationships
+    restaurant: _Map["Restaurant"] = _rel(
+        back_populates="internal_departments"
+    )
+    default_actor: _Map["DefaultActor"] = _rel(
+        back_populates="restaurant_internal_department"
+    )
+
+
+class RestaurantInternalSubDepartment(_Base):
+    __tablename__ = "RestaurantInternalSubDepartment"
+
+    """
+    Internal restaraunt department that reports to a parent department
+    """
+
+    # columns
+    parent_id = _Column(
+        _Int, _Fk("RestaurantInternalDepartment"), primary_key=True
+    )
+    child_id = _Column(
+        _Int, _Fk("RestaurantInternalDepartment"), primary_key=True
+    )
+
+    # relationships
+    parent: _Map["RestaurantInternalDepartment"] = _rel(
+        back_populates="sub_departments"
+    )
+    child: _Map["RestaurantInternalDepartment"] = _rel(
+        back_populates="parent_department"
+    )
+
+    # composite primary key
+    __table_args__ = (_PKConstraint(child_id, parent_id), {})
+
+
+class DefaultActorTaskDelegation(_Base):
+    __tablename__ = "DefaultActorTaskDelegation"
+
+    """
+    Logic for processing tasks and distributing subtasks to delegates.
+
+    filter(<filter_>, <source>)
+    must return a generator of attachments that will be distributed to delegate
+
+    Returned values must be instances of <result_type> model class.
+    filter_ can use only python built-ins.
+    source must be a string that starts with 'self.'
+    """
+
+    # attrs not stored in db
+    attachments_type: _Any
+
+    @_reconstructor
+    def _set_result_type(self):
+        self.attachments_type = globals()[
+            self.attachments_type_name
+        ]  # pyright: ignore
+
+    # columns
+    default_actor_id = _Column(_Int, _Fk("DefaultActor.id"), primary_key=True)
+    incoming_task_type_id = _Column(_Int, _Fk("TaskType.id"), primary_key=True)
+    outcoming_task_type_id = _Column(
+        _Int, _Fk("TaskType.id"), primary_key=True
+    )
+
+    # columns with python code that
+    # must be used to collect delegation attachments
+    source = _Column(_Str, nullable=False)
+    filter_ = _Column(_Str, nullable=True)
+    attachments_type_name = _Column(_Str, nullable=False)
+
+    # columns for Task creation
+    task_name = _Column(_Str, nullable=False)
+    task_comment = _Column(_Str)
+    task_start_execution = _Column(_Dt, index=True)
+    task_fail_on_late_start = _Column(_Bool, nullable=False, default=False)
+    task_complete_before = _Column(_Dt)
+    task_fail_on_late_complete = _Column(_Bool, nullable=False, default=False)
+
+    # relationships
+    default_actor: _Map["DefaultActor"] = _rel(
+        back_populates="task_delegations"
+    )
+    incoming_task_type: _Map["TaskType"] = _rel(
+        back_populates="incoming_in_task_delegations"
+    )
+    outcoming_task_type: _Map["TaskType"] = _rel(
+        back_populates="outcoming_in_task_delegations"
+    )
+
+    # composite primary key
+    __table_args__ = (
+        _PKConstraint(
+            default_actor_id, incoming_task_type_id, outcoming_task_type_id
+        ),
+        {},
+    )
+
+    # methods
+    def get_attachments(
+        self, attachments_type: T  # pyright: ignore
+    ) -> _Generator[T, None, None]:
+        # I'm not found any other ways to save type hinting
+        if attachments_type is not self.attachment_type:
+            raise TypeError("wrong attachment type")
+
+        # todo: find ways to replace
+        attachments = eval(
+            f"filter((lambda a: {self.filter_}), {self.source})",
+            {},
+            {"self": self},
+        )
+        _check_type(attachments, _Generator[T, None, None])
+        return attachments
+
+    # validators
+    @_validates("source")
+    def _validate_source(self, _, source: str):
+        if not source.startswith("self."):
+            raise ValueError("Illegal source")
+
+    @_validates("attachments_type_name")
+    def _validate_attachments_type_name(self, _, name: str):
+        if name not in globals():
+            raise ValueError("Illegal attachments type name")
 
 
 class DefaultActor(_Base):
@@ -152,11 +323,24 @@ class DefaultActor(_Base):
     """
 
     # columns
-    id = _Column(_Int, _Fk("Actor.id"), primary_key=True, index=True)
+    id = _Column(_Int, primary_key=True, index=True)
+    actor_id = _Column(
+        _Int, _Fk("Actor.id"), index=True, unique=True, nullable=False
+    )
     name = _Column(_Str, unique=True, index=True)
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="default_actor")
+    task_delegations: _Map[_List["DefaultActorTaskDelegation"]] = _rel(
+        back_populates="default_actor"
+    )
+    restaurant: _Map[_Opt["Restaurant"]] = _rel(back_populates="default_actor")
+    restaurant_external_department: _Map[
+        _Opt["RestaurantExternalDepartment"]
+    ] = _rel(back_populates="default_actor")
+    restaurant_internal_department: _Map[
+        _Opt["RestaurantInternalDepartment"]
+    ] = _rel(back_populates="default_actor")
 
 
 class TaskType(_Base):
@@ -171,13 +355,41 @@ class TaskType(_Base):
     name = _Column(_Str, unique=True, index=True)
 
     # relationships
-    restaraunt_employee_position_access_levels: _Map[
-        _List["RestarauntEmployeePositionAccessLevel"]
+    restaurant_employee_position_access_levels: _Map[
+        _List["RestaurantEmployeePositionAccessLevel"]
     ] = _rel(back_populates="task_type")
-
     personal_access_levels: _Map[_List["ActorAccessLevel"]] = _rel(
         back_populates="task_type"
     )
+    groups: _Map[_List["TaskTypeGroupTask"]] = _rel(back_populates="type")
+    incoming_in_task_delegations: _Map[
+        _List["DefaultActorTaskDelegation"]
+    ] = _rel(back_populates="incoming_task_type")
+    outcoming_in_task_delegations: _Map[
+        _List["DefaultActorTaskDelegation"]
+    ] = _rel(back_populates="outcoming_task_type")
+
+
+class TaskTypeGroup(_Base):
+    __tablename__ = "TaskTypeGroup"
+
+    id = _Column(_Int, primary_key=True, index=True)
+    name = _Column(_Str, unique=True, index=True, nullable=False)
+
+    types: _Map[_List["TaskTypeGroupTask"]] = _rel(back_populates="group")
+
+
+class TaskTypeGroupTask(_Base):
+    __tablename__ = "TaskTypeGroupTask"
+
+    group_id = _Column(_Int, _Fk("TaskTypeGroup.id"), primary_key=True)
+    type_id = _Column(_Int, _Fk("TaskType.id"), primary_key=True)
+
+    group: _Map["TaskTypeGroup"] = _rel(back_populates="types")
+    type: _Map["TaskType"] = _rel(back_populates="groups")
+
+    # composite primary key
+    __table_args__ = (_PKConstraint(group_id, type_id), {})
 
 
 class ActorAccessLevel(_Base):
@@ -200,9 +412,7 @@ class ActorAccessLevel(_Base):
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="personal_access_levels")
-
     task_type: _Map["TaskType"] = _rel(back_populates="personal_access_levels")
-
     task_target: _Map["TaskTarget"] = _rel(
         back_populates="defining_access_level"
     )
@@ -220,40 +430,51 @@ class TaskTarget(_Base):
 
     # relationships
     task: _Map["Task"] = _rel(back_populates="target")
-
+    types: _Map[_List["TaskTargetTypeTarget"]] = _rel(back_populates="target")
     supply: _Map[_Opt["Supply"]] = _rel(back_populates="task_target")
-
-    shift: _Map[_Opt["Shift"]] = _rel(back_populates="task_target")
-
     salary: _Map[_Opt["Salary"]] = _rel(back_populates="task_target")
-
     writeoff: _Map[_Opt["WriteOff"]] = _rel(back_populates="task_target")
-
     customer_order: _Map[_Opt["CustomerOrder"]] = _rel(
         back_populates="task_target"
     )
-
     customer_payment: _Map[_Opt["CustomerPayment"]] = _rel(
         back_populates="task_target"
     )
-
-    kitchen_order: _Map[_Opt["KitchenOrder"]] = _rel(
+    supply_order: _Map[_Opt["SupplyOrder"]] = _rel(
         back_populates="task_target"
     )
-
     supply_payment: _Map[_Opt["SupplyPayment"]] = _rel(
         back_populates="task_target"
     )
-
     defining_access_level: _Map[_Opt["ActorAccessLevel"]] = _rel(
         back_populates="task_target"
     )
-
     discount_group: _Map[_Opt["DiscountGroup"]] = _rel(
         back_populates="task_target"
     )
-
     dicsount: _Map[_Opt["Discount"]] = _rel(back_populates="task_target")
+
+
+class TaskTargetType(_Base):
+    __tablename__ = "TaskTargetType"
+
+    # columns
+    id = _Column(_Int, primary_key=True, index=True)
+    name = _Column(_Str, nullable=False, unique=True, index=True)
+
+    # relationships
+    targets: _Map[_List["TaskTargetTypeTarget"]] = _rel(back_populates="type")
+
+
+class TaskTargetTypeTarget(_Base):
+    __tablename__ = "TaskTargetTypeTarget"
+
+    # columns
+    type_id = _Column(_Int, _Fk("TaskTargetType.id"), primary_key=True)
+    target_id = _Column(_Int, _Fk("TaskTarget.id"), primary_key=True)
+
+    type: _Map["TaskTargetType"] = _rel(back_populates="targets")
+    target: _Map["TaskTarget"] = _rel(back_populates="types")
 
 
 class SubTask(_Base):
@@ -270,7 +491,6 @@ class SubTask(_Base):
 
     # relationships
     subtasks: _Map[_List["Task"]] = _rel(back_populates="parent")
-
     parent: _Map["Task"] = _rel(back_populates="subtasks")
 
     # composite primary key
@@ -303,20 +523,17 @@ class User(_Base):
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="user")
-
-    restaraunt_employee: _Map[_Opt["RestarauntEmployee"]] = _rel(
+    restaurant_employee: _Map[_Opt["RestaurantEmployee"]] = _rel(
         back_populates="user"
     )
-
     customer: _Map[_Opt["Customer"]] = _rel(back_populates="user")
-
     verifications: _Map[_List["Verification"]] = _rel(back_populates="user")
 
     # methods
     def verify_password(self, password: str) -> bool:
         return _hash.bcrypt.verify(
-            password, self.hashed_password
-        )  # pyright: ignore
+            password, self.hashed_password  # pyright: ignore
+        )
 
 
 class Verification(_Base):
@@ -336,8 +553,8 @@ class Verification(_Base):
     user: _Map["User"] = _rel(back_populates="verifications")
 
 
-class RestarauntEmployeePosition(_Base):
-    __tablename__ = "RestarauntEmployeePosition"
+class RestaurantEmployeePosition(_Base):
+    __tablename__ = "RestaurantEmployeePosition"
 
     """
     Job title
@@ -350,47 +567,47 @@ class RestarauntEmployeePosition(_Base):
     expierence_coefficient = _Column(_Float, nullable=False, default=1)
 
     # relationships
-    restaraunt_employees: _Map[_List["RestarauntEmployee"]] = _rel(
+    employees: _Map[_List["RestaurantEmployee"]] = _rel(
+        back_populates="position"
+    )
+    access_levels: _Map[_List["RestaurantEmployeePositionAccessLevel"]] = _rel(
         back_populates="position"
     )
 
-    access_levels: _Map[_List["RestarauntEmployeePositionAccessLevel"]] = _rel(
-        back_populates="position"
-    )
 
-
-class RestarauntEmployeePositionAccessLevel(_Base):
-    __tablename__ = "RestarauntEmployeePositionAccessLevel"
+class RestaurantEmployeePositionAccessLevel(_Base):
+    __tablename__ = "RestaurantEmployeePositionAccessLevel"
 
     """
-    Group access levels for all restaraunt_employees in a specified position
+    Group access levels for all restaurant employees in a specified position
     """
 
     # columns
     position_id = _Column(
-        _Int, _Fk("RestarauntEmployeePosition.id"), primary_key=True
+        _Int, _Fk("RestaurantEmployeePosition.id"), primary_key=True
     )
-    task_type_id = _Column(_Int, _Fk("TaskType.id"), primary_key=True)
+    task_type_group_id = _Column(
+        _Int, _Fk("TaskTypeGroup.id"), primary_key=True
+    )
     role = _Column(_Str, nullable=False, index=True)
 
     # relationships
-    position: _Map["RestarauntEmployeePosition"] = _rel(
+    position: _Map["RestaurantEmployeePosition"] = _rel(
         back_populates="access_levels"
     )
-
-    task_type: _Map["TaskType"] = _rel(
-        back_populates="restaraunt_employee_position_access_levels"
+    task_type_group: _Map["TaskTypeGroup"] = _rel(
+        back_populates="restaurant_employee_position_access_levels"
     )
 
     # composite primary key
-    __table_args__ = (_PKConstraint(position_id, task_type_id), {})
+    __table_args__ = (_PKConstraint(position_id, task_type_group_id), {})
 
 
-class RestarauntEmployee(_Base):
-    __tablename__ = "RestarauntEmployee"
+class RestaurantEmployee(_Base):
+    __tablename__ = "RestaurantEmployee"
 
     """
-    Base model for each restaraunt_employee
+    Base model for each restaurant employee
     """
 
     # columns
@@ -400,36 +617,19 @@ class RestarauntEmployee(_Base):
     fired_date = _Column(_Dt)
     on_shift = _Column(_Bool, nullable=False, index=True)
     position_id = _Column(
-        _Int, _Fk("RestarauntEmployeePosition.id"), nullable=False, index=True
+        _Int, _Fk("RestaurantEmployeePosition.id"), nullable=False, index=True
     )
+    restaurant_id = _Column(_Int, _Fk("Restaurant.id"), index=True)
 
     # relationships
-    user: _Map["User"] = _rel(back_populates="restaraunt_employee")
-
-    position: _Map["RestarauntEmployeePosition"] = _rel(
-        back_populates="restaraunt_employees"
+    user: _Map["User"] = _rel(back_populates="restaurant_employee")
+    position: _Map["RestaurantEmployeePosition"] = _rel(
+        back_populates="employees"
     )
-
     salaries: _Map[_List["Salary"]] = _rel(
-        back_populates="restaraunt_employee"
+        back_populates="restaurant_employee"
     )
-
-    deliveryman: _Map[_Opt["Deliveryman"]] = _rel(
-        back_populates="restaraunt_employee"
-    )
-
-
-class Shift(_Base):
-    __tablename__ = "Shift"
-
-    # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    task_target_id = _Column(
-        _Int, _Fk("TaskTarget.id"), nullable=False, unique=True, index=True
-    )
-
-    # relationships
-    task_target: _Map["TaskTarget"] = _rel(back_populates="shift")
+    restaurant: _Map["Restaurant"] = _rel(back_populates="employees")
 
 
 class Customer(_Base):
@@ -444,11 +644,9 @@ class Customer(_Base):
 
     # relationships
     user: _Map["User"] = _rel(back_populates="customer")
-
     favorites: _Map[_List["CustomerFavoriteProduct"]] = _rel(
         back_populates="customer"
     )
-
     shopping_cart_products: _Map[_List["CustomerFavoriteProduct"]] = _rel(
         back_populates="customer"
     )
@@ -469,27 +667,38 @@ class Material(_Base):
     name = _Column(_Str, unique=True, nullable=False, index=True)
     unit = _Column(_Str, nullable=False)
     price = _Column(_Float, nullable=False)
-    stock_balance = _Column(_Float, default=0)
     best_before = _Column(_Dt)
     group_id = _Column(_Int, _Fk("MaterialGroup.id"), nullable=False)
     created = _Column(_Dt, nullable=False)
 
     # relationships
     item: _Map["Item"] = _rel(back_populates="material")
-
     group: _Map["MaterialGroup"] = _rel(back_populates="materials")
-
     ingridients: _Map[_List["IngridientMaterial"]] = _rel(
         back_populates="material"
     )
-
     allergic_flags: _Map[_List["MaterialAllergicFlag"]] = _rel(
         back_populates="material"
     )
-
-    kitchen_order: _Map[_List["KitchenOrderMaterial"]] = _rel(
+    stock_balance: _Map[_List["MaterialStockBalance"]] = _rel(
         back_populates="material"
     )
+
+
+class MaterialStockBalance(_Base):
+    __tablename__ = "MaterialStockBalance"
+
+    # columns
+    material_id = _Column(_Int, _Fk("Material.id"), primary_key=True)
+    restaurant_id = _Column(_Int, _Fk("Restaurant.id"), primary_key=True)
+    balance = _Column(_Float, nullable=True)
+
+    # relationships
+    material: _Map["Material"] = _rel(back_populates="stock_balance")
+    restaurant: _Map["Restaurant"] = _rel(back_populates="stock_balance")
+
+    # composite primary key
+    __table_args__ = (_PKConstraint(material_id, restaurant_id), {})
 
 
 class MaterialGroup(_Base):
@@ -501,7 +710,6 @@ class MaterialGroup(_Base):
 
     # relationships
     parent_group: _Map[_Opt["MaterialSubGroup"]] = _rel(back_populates="child")
-
     subgroups: _Map[_List["MaterialSubGroup"]] = _rel(back_populates="parent")
 
 
@@ -514,7 +722,6 @@ class MaterialSubGroup(_Base):
 
     # relationships
     parent: _Map["MaterialGroup"] = _rel(back_populates="subgroups")
-
     child: _Map["MaterialGroup"] = _rel(back_populates="parent_group")
 
     # composite primary key
@@ -526,15 +733,16 @@ class Supply(_Base):
 
     # columns
     id = _Column(_Int, primary_key=True, index=True)
+    restaurant_id = _Column(
+        _Int, _Fk("Restaurant.id"), nullable=False, index=True
+    )
     task_target_id = _Column(
         _Int, _Fk("TaskTarget.id"), nullable=False, index=True
     )
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="supply")
-
     items: _Map[_List["SupplyItem"]] = _rel(back_populates="supply")
-
     payment: _Map["SupplyPayment"] = _rel(back_populates="supply")
 
 
@@ -549,7 +757,6 @@ class SupplyItem(_Base):
 
     # relationships
     supply: _Map["Supply"] = _rel(back_populates="items")
-
     item: _Map["Item"] = _rel(back_populates="supplies")
 
     # composite primary key
@@ -576,11 +783,9 @@ class Ingridient(_Base):
     materials: _Map[_List["IngridientMaterial"]] = _rel(
         back_populates="ingridient"
     )
-
     products: _Map[_List["ProductIngridient"]] = _rel(
         back_populates="ingridient"
     )
-
     available_to_add_in_products: _Map[
         _List["ProductAvailableExtraIngridient"]
     ] = _rel(back_populates="ingridient")
@@ -600,7 +805,6 @@ class IngridientMaterial(_Base):
 
     # relationships
     material: _Map["Material"] = _rel(back_populates="ingridients")
-
     ingridient: _Map["Ingridient"] = _rel(back_populates="materials")
 
     # composite primary key
@@ -629,32 +833,43 @@ class Product(_Base):
     ingridients: _Map[_List["ProductIngridient"]] = _rel(
         back_populates="product"
     )
-
     customers_who_added_to_favorites: _Map[
         _List["CustomerFavoriteProduct"]
     ] = _rel(back_populates="product")
-
     customers_who_added_to_shopping_cart: _Map[
         _List["CustomerShoppingCartProduct"]
     ] = _rel(back_populates="product")
-
     customer_orders: _Map[_List["CustomerOrderProduct"]] = _rel(
         back_populates="product"
     )
-
     available_extra_ingridients: _Map[
         _List["ProductAvailableExtraIngridient"]
     ] = _rel(back_populates="product")
-
-    product_category: _Map["ProductCategoryProduct"] = _rel(
-        back_populates="product"
-    )
-
+    category: _Map["ProductCategoryProduct"] = _rel(back_populates="product")
     discounts: _Map[_List["DiscountOptionProduct"]] = _rel(
         back_populates="product"
     )
-
     tare: _Map[_Opt["Tare"]] = _rel(back_populates="products")
+    restaurants: _Map[_List["RestaurantProduct"]] = _rel(
+        back_populates="product"
+    )
+
+
+class RestaurantProduct(_Base):
+    __tablename__ = "RestaurantProduct"
+
+    """
+    Product selling in a restaurant
+    """
+
+    product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
+    restaurant_id = _Column(_Int, _Fk("Restaurant.id"), primary_key=True)
+    suspended = _Column(_Bool, nullable=False, default=False, index=True)
+
+    product: _Map["Product"] = _rel(back_populates="restaurants")
+    restaurant: _Map["Restaurant"] = _rel(back_populates="products")
+
+    __table_args__ = (_PKConstraint(restaurant_id, product_id), {})
 
 
 class ProductIngridient(_Base):
@@ -674,7 +889,6 @@ class ProductIngridient(_Base):
 
     # relationships
     product: _Map["Product"] = _rel(back_populates="ingridients")
-
     ingridient: _Map["Ingridient"] = _rel(back_populates="products")
 
     # composite primary key
@@ -694,7 +908,6 @@ class CustomerFavoriteProduct(_Base):
 
     # relationships
     customer: _Map["Customer"] = _rel(back_populates="favorite_products")
-
     product: _Map["Product"] = _rel(
         back_populates="cusomers_who_added_to_favorites"
     )
@@ -717,7 +930,6 @@ class CustomerShoppingCartProduct(_Base):
 
     # relationships
     customer: _Map["Customer"] = _rel(back_populates="shopping_cart_products")
-
     product: _Map["Product"] = _rel(
         back_populates="customers_who_added_to_shopping_cart"
     )
@@ -738,24 +950,24 @@ class CustomerOrder(_Base):
     task_target_id = _Column(
         _Int, _Fk("TaskTarget.id"), nullable=False, unique=False, index=True
     )
+    restaurant_id = _Column(
+        _Int, _Fk("Restaurant.id"), nullable=False, index=True
+    )
     status = _Column(_Str, nullable=False)
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="customer_order")
-
     products: _Map[_List["CustomerOrderProduct"]] = _rel(
         back_populates="customer_order"
     )
-
     online_order: _Map[_Opt["OnlineOrder"]] = _rel(
         back_populates="customer_order"
     )
-
     waiter_order: _Map[_Opt["WaiterOrder"]] = _rel(
         back_populates="customer_order"
     )
-
     payment: _Map["CustomerPayment"] = _rel(back_populates="order")
+    restaurant: _Map["Restaurant"] = _rel(back_populates="customer_orders")
 
 
 class CustomerOrderProduct(_Base):
@@ -773,9 +985,7 @@ class CustomerOrderProduct(_Base):
 
     # relationships
     customer_order: _Map["CustomerOrder"] = _rel(back_populates="products")
-
     product: _Map["Product"] = _rel(back_populates="customer_orders")
-
     discount_option: _Map[_Opt["DiscountOption"]] = _rel(
         back_populates="order_products"
     )
@@ -797,10 +1007,6 @@ class OnlineOrder(_Base):
     # relationships
     customer_order: _Map["CustomerOrder"] = _rel(back_populates="online_order")
 
-    current_deliveryman: _Map[_Opt["Deliveryman"]] = _rel(
-        back_populates="current_order"
-    )
-
 
 class ProductAvailableExtraIngridient(_Base):
     __tablename__ = "ProductAvailableExtraIngridient"
@@ -818,7 +1024,6 @@ class ProductAvailableExtraIngridient(_Base):
     product: _Map["Product"] = _rel(
         back_populates="available_extra_ingridients"
     )
-
     ingridient: _Map["Ingridient"] = _rel(
         back_populates="available_to_add_in_products"
     )
@@ -845,7 +1050,6 @@ class CustomerOrderProductIngridientChange(_Base):
     order_product: _Map["CustomerOrderProduct"] = _rel(
         back_populates="changed_ingridients"
     )
-
     ingridient: _Map["Ingridient"] = _rel(
         back_populates="changed_in_order_products"
     )
@@ -872,7 +1076,6 @@ class CustomerOrderProductExtraIngridient(_Base):
     order_product: _Map["CustomerOrderProduct"] = _rel(
         back_populates="extra_ingridients"
     )
-
     ingridient: _Map["Ingridient"] = _rel(
         back_populates="added_to_order_products"
     )
@@ -885,19 +1088,18 @@ class Table(_Base):
     __tablename__ = "Table"
 
     """
-    Table in a restaraunt
+    Table in a restaurant
     """
 
     # columns
     id = _Column(_Int, primary_key=True, index=True)
-    number = _Column(_Int, nullable=False, unique=True, index=True)
+    number = _Column(_Int, nullable=False, index=True)
     location_id = _Column(
         _Int, _Fk("TableLocation.id"), nullable=False, index=True
     )
 
     # relationships
     location: _Map["TableLocation"] = _rel(back_populates="tables")
-
     waiter_orders: _Map[_List["WaiterOrder"]] = _rel(back_populates="table")
 
 
@@ -911,9 +1113,13 @@ class TableLocation(_Base):
     # columns
     id = _Column(_Int, primary_key=True, index=True)
     name = _Column(_Str, unique=True, index=True, nullable=False)
+    restaurant_id = _Column(
+        _Int, _Fk("Restaurant.id"), nullable=False, index=True
+    )
 
     # relationships
     tables: _Map[_List["Table"]] = _rel(back_populates="location")
+    restaurant: _Map["Restaurant"] = _rel(back_populates="table_locations")
 
 
 class WaiterOrder(_Base):
@@ -928,7 +1134,6 @@ class WaiterOrder(_Base):
 
     # relationships
     table: _Map["Table"] = _rel(back_populates="waiter_orders")
-
     customer_order: _Map["CustomerOrder"] = _rel(back_populates="waiter_order")
 
 
@@ -940,15 +1145,14 @@ class Salary(_Base):
     task_target_id = _Column(
         _Int, _Fk("TaskTarget.id"), nullable=False, unique=True, index=True
     )
-    restaraunt_employee_id = _Column(
-        _Int, _Fk("RestarauntEmployee.id"), nullable=False, index=True
+    restaurant_employee_id = _Column(
+        _Int, _Fk("RestaurantEmployee.id"), nullable=False, index=True
     )
     bonus = _Column(_Float)
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="salary")
-
-    restaraunt_employee: _Map["RestarauntEmployee"] = _rel(
+    restaurant_employee: _Map["RestaurantEmployee"] = _rel(
         back_populates="salaries"
     )
 
@@ -983,7 +1187,6 @@ class MaterialAllergicFlag(_Base):
 
     # relationships
     material: _Map["Material"] = _rel(back_populates="allergic_flags")
-
     allergic_flag: _Map["AllergicFlag"] = _rel(back_populates="materials")
 
     # composite primary key
@@ -1006,10 +1209,6 @@ class ProductCategory(_Base):
         back_populates="product_category"
     )
 
-    kitchen_area: _Map["KitchenAreaProductCategory"] = _rel(
-        back_populates="product_category"
-    )
-
 
 class ProductCategoryProduct(_Base):
     __tablename__ = "ProductCategoryProduct"
@@ -1019,60 +1218,11 @@ class ProductCategoryProduct(_Base):
     category_id = _Column(_Int, _Fk("ProductCategory.id"), primary_key=True)
 
     # relationships
-    product: _Map["Product"] = _rel(back_populates="product_category")
-
+    product: _Map["Product"] = _rel(back_populates="category")
     product_category: _Map["ProductCategory"] = _rel(back_populates="products")
 
     # composite primary key
     __table_args__ = (_PKConstraint(product_id, category_id), {})
-
-
-class KitchenArea(_Base):
-    __tablename__ = "KitchenArea"
-
-    """
-    A workshop responsible for preparing a specific group of dishes.
-    """
-
-    # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    actor_id = _Column(
-        _Int, _Fk("Actor.id"), unique=True, index=True, nullable=False
-    )
-    name = _Column(_Str, unique=True, nullable=False, index=True)
-
-    # relationships
-    actor: _Map["Actor"] = _rel(back_populates="kitchen_area")
-
-    product_categories: _Map[_List["KitchenAreaProductCategory"]] = _rel(
-        back_populates="kitchen_area"
-    )
-
-
-class KitchenAreaProductCategory(_Base):
-    __tablename__ = "KitchenAreaProductCategory"
-
-    """
-    Group of products that cooked on the KitchenArea
-    """
-
-    # columns
-    kitchen_area_id = _Column(_Int, _Fk("KitchenArea.id"), primary_key=True)
-    product_category_id = _Column(
-        _Int, _Fk("ProductCategory.id"), primary_key=True
-    )
-
-    # relationships
-    kitchen_area: _Map["KitchenArea"] = _rel(
-        back_populates="product_categories"
-    )
-
-    product_category: _Map["ProductCategory"] = _rel(
-        back_populates="kitchen_area"
-    )
-
-    # composite primary key
-    __table_args__ = (_PKConstraint(kitchen_area_id, product_category_id), {})
 
 
 class CustomerPayment(_Base):
@@ -1089,35 +1239,7 @@ class CustomerPayment(_Base):
 
     # relationships
     order: _Map["CustomerOrder"] = _rel(back_populates="payment")
-
     task_target: _Map["TaskTarget"] = _rel(back_populates="customer_payment")
-
-
-class Deliveryman(_Base):
-    __tablename__ = "Deliveryman"
-
-    # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    restaraunt_employee_id = _Column(
-        _Int,
-        _Fk("RestarauntEmployee.id"),
-        unique=True,
-        index=True,
-        nullable=False,
-    )
-    geolocation = _Column(_Str)
-    current_order_id = _Column(
-        _Int, _Fk("OnlineOrder.id"), unique=True, index=True, nullable=True
-    )
-
-    # relationships
-    restaraunt_employee: _Map["RestarauntEmployee"] = _rel(
-        back_populates="deliveryman"
-    )
-
-    current_order: _Map["OnlineOrder"] = _rel(
-        back_populates="current_deliveryman"
-    )
 
 
 class DiscountGroup(_Base):
@@ -1136,7 +1258,6 @@ class DiscountGroup(_Base):
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="discount_group")
-
     discounts: _Map[_List["Discount"]] = _rel(back_populates="group")
 
 
@@ -1164,10 +1285,30 @@ class Discount(_Base):
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="discount")
-
     group: _Map["DiscountGroup"] = _rel(back_populates="discounts")
-
     options: _Map[_List["DiscountOption"]] = _rel(back_populates="discount")
+    restaurants: _Map[_List["RestaurantDiscount"]] = _rel(
+        back_populates="discount"
+    )
+
+
+class RestaurantDiscount(_Base):
+    __tablename__ = "RestaurantDiscount"
+
+    """
+    Discounts offered in a restaurant
+    """
+
+    # columns
+    restaurant_id = _Column(_Int, _Fk("Restaurant.id"), primary_key=True)
+    discount_id = _Column(_Int, _Fk("Discount.id"), primary_key=True)
+
+    # relationships
+    restaurant: _Map["Restaurant"] = _rel(back_populates="discounts")
+    discount: _Map["Discount"] = _rel(back_populates="restaurants")
+
+    # composite primary key
+    __table_args__ = (_PKConstraint(restaurant_id, discount_id), {})
 
 
 class CustomerOrderDiscount(_Base):
@@ -1185,7 +1326,6 @@ class CustomerOrderDiscount(_Base):
 
     # relationshis
     customer_order: _Map["CustomerOrder"] = _rel(back_populates="discounts")
-
     discount: _Map["Discount"] = _rel(back_populates="orders")
 
 
@@ -1204,7 +1344,6 @@ class DiscountOption(_Base):
 
     # relationships
     discount: _Map["Discount"] = _rel(back_populates="options")
-
     products: _Map["DiscountOptionProduct"] = _rel(back_populates="option")
 
 
@@ -1224,15 +1363,14 @@ class DiscountOptionProduct(_Base):
 
     # relationships
     option: _Map["DiscountOption"] = _rel(back_populates="products")
-
     product: _Map["Product"] = _rel(back_populates="discounts")
 
 
-class KitchenOrder(_Base):
-    __tablename__ = "KitchenOrder"
+class SupplyOrder(_Base):
+    __tablename__ = "SupplyOrder"
 
     """
-    Order for the supply of consumables
+    Order for the supply
     """
 
     # columns
@@ -1242,28 +1380,26 @@ class KitchenOrder(_Base):
     )
 
     # relationships
-    task_target: _Map["TaskTarget"] = _rel(back_populates="kitchen_order")
-
-    material: _Map[_List["KitchenOrderMaterial"]] = _rel(
+    task_target: _Map["TaskTarget"] = _rel(back_populates="supply_order")
+    items: _Map[_List["SupplyOrderItem"]] = _rel(
         back_populates="kitchen_order"
     )
 
 
-class KitchenOrderMaterial(_Base):
-    __tablename__ = "KitchenOrderMaterial"
+class SupplyOrderItem(_Base):
+    __tablename__ = "SupplyOrderItem"
 
     # columns
-    kitchen_order_id = _Column(_Int, _Fk("KitchenOrder.id"), primary_key=True)
-    material_id = _Column(_Int, _Fk("Material.id"), primary_key=True)
+    supply_order_id = _Column(_Int, _Fk("SupplyOrder.id"), primary_key=True)
+    item_id = _Column(_Int, _Fk("Item.id"), primary_key=True)
     count = _Column(_Float, nullable=False)
 
     # relationships
-    kitchen_order: _Map["KitchenOrder"] = _rel(back_populates="materials")
-
-    material: _Map["Material"] = _rel(back_populates="kitchen_orders")
+    supply_order: _Map["SupplyOrder"] = _rel(back_populates="items")
+    item: _Map["Item"] = _rel(back_populates="supply_orders")
 
     # composite primary key
-    __table_args__ = (_PKConstraint(kitchen_order_id, material_id), {})
+    __table_args__ = (_PKConstraint(supply_order_id, item_id), {})
 
 
 class WriteOffReason(_Base):
@@ -1281,7 +1417,6 @@ class WriteOffReason(_Base):
 
     # relationships
     group: _Map["WriteOffReasonGroup"] = _rel(back_populates="reasons")
-
     writeoffs: _Map[_List["WriteOff"]] = _rel(back_populates="reason")
 
 
@@ -1311,9 +1446,7 @@ class WriteOff(_Base):
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="writeoff")
-
     reason: _Map["WriteOffReason"] = _rel(back_populates="writeoffs")
-
     items: _Map[_List["WriteOffItem"]] = _rel(back_populates="writeoff")
 
 
@@ -1327,7 +1460,6 @@ class WriteOffItem(_Base):
 
     # relationshils
     writeoff: _Map["WriteOff"] = _rel(back_populates="materials")
-
     item: _Map["Item"] = _rel(back_populates="writeoffs")
 
     # composite primary key
@@ -1348,7 +1480,6 @@ class SupplyPayment(_Base):
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="supply_payment")
-
     supply: _Map["Supply"] = _rel(back_populates="payment")
 
 
@@ -1370,7 +1501,6 @@ class Tare(_Base):
 
     # relationships
     item: _Map["Item"] = _rel(back_populates="tare")
-
     products: _Map[_List["Product"]] = _rel(back_populates="tare")
 
 
@@ -1392,7 +1522,6 @@ class Inventory(_Base):
 
     # relationships
     item: _Map["Item"] = _rel(back_populates="inventory")
-
     group: _Map["InventoryGroup"] = _rel(back_populates="inventory")
 
 
@@ -1405,9 +1534,7 @@ class InventoryGroup(_Base):
 
     # relationships
     inventory: _Map[_List["Inventory"]] = _rel(back_populates="group")
-
     subgroups: _Map[_List["InventorySubGroup"]] = _rel(back_populates="parent")
-
     parent_group: _Map[_Opt["InventorySubGroup"]] = _rel(
         back_populates="child"
     )
@@ -1422,7 +1549,6 @@ class InventorySubGroup(_Base):
 
     # relationships
     parent: _Map["InventoryGroup"] = _rel(back_populates="subgroups")
-
     child: _Map["InventoryGroup"] = _rel(back_populates="parent_group")
 
     # composite primary key
@@ -1441,12 +1567,10 @@ class Item(_Base):
 
     # relationships
     material: _Map[_Opt["Material"]] = _rel(back_populates="item")
-
     tare: _Map[_Opt["Tare"]] = _rel(back_populates="item")
-
     inventory: _Map[_Opt["Inventory"]] = _rel(back_populates="item")
-
     writeoffs: _Map[_List["WriteOffItem"]] = _rel(back_populates="item")
+    supply_orders: _Map[_List["SupplyOrder"]] = _rel(back_populates="item")
 
 
 class Task(_Base):
@@ -1477,17 +1601,11 @@ class Task(_Base):
 
     # relationships
     task_type: _Map["TaskType"] = _rel(back_populates="tasks")
-
     target: _Map["TaskTarget"] = _rel(back_populates="task")
-
     author: _Map["Actor"] = _rel(back_populates="created_tasks")
-
     executor: _Map["Actor"] = _rel(back_populates="tasks_to_execute")
-
     inspector: _Map["Actor"] = _rel(back_populates="tasks_to_inspect")
-
     parent: _Map[_Opt["SubTask"]] = _rel(back_populates="subtasks")
-
     subtasks: _Map[_List["SubTask"]] = _rel(back_populates="parent")
 
     # methods
