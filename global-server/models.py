@@ -1,6 +1,5 @@
 from datetime import datetime as _dt
 from operator import attrgetter as _attr
-from typing import Any as _Any
 from typing import Dict as _Dict
 from typing import Generator as _Generator
 from typing import List as _List
@@ -194,6 +193,12 @@ class RestaurantInternalDepartment(_Base):
     default_actor: _Map["DefaultActor"] = _rel(
         back_populates="restaurant_internal_department"
     )
+    sub_departments: _Map[_List["RestaurantInternalSubDepartment"]] = _rel(
+        back_populates="parent"
+    )
+    parent_department: _Map["RestaurantInternalSubDepartment"] = _rel(
+        back_populates="child"
+    )
 
 
 class RestaurantInternalSubDepartment(_Base):
@@ -205,10 +210,10 @@ class RestaurantInternalSubDepartment(_Base):
 
     # columns
     parent_id = _Column(
-        _Int, _Fk("RestaurantInternalDepartment"), primary_key=True
+        _Int, _Fk("RestaurantInternalDepartment.id"), primary_key=True
     )
     child_id = _Column(
-        _Int, _Fk("RestaurantInternalDepartment"), primary_key=True
+        _Int, _Fk("RestaurantInternalDepartment.id"), primary_key=True
     )
 
     # relationships
@@ -236,9 +241,6 @@ class DefaultActorTaskDelegation(_Base):
     filter_ can use only python built-ins.
     source must be a string that starts with 'self.'
     """
-
-    # attrs not stored in db
-    attachments_type: _Any
 
     @_reconstructor
     def _set_result_type(self):
