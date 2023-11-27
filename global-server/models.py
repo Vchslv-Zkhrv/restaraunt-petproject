@@ -111,7 +111,11 @@ class RestaurantExternalDepartment(_Base):
     restaurant_id = _Column(
         _Int, _Fk("Restaurant.id"), index=True, nullable=False
     )
-    type = _Column(_Str, nullable=False, index=True)
+    type = _Column(
+        _Enum(_types.enums.RestarauntExternalDepartmentType),
+        nullable=False,
+        index=True,
+    )
 
     # relationships
     restaurant: _Map["Restaurant"] = _rel(
@@ -410,7 +414,7 @@ class ActorAccessLevel(_Base):
     task_target_id = _Column(
         _Int, _Fk("TaskTarget.id"), index=True, unique=True
     )
-    role = _Column(_Str, nullable=False, index=True)
+    role = _Column(_Enum(_types.enums.AccessRole), nullable=False, index=True)
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="personal_access_levels")
@@ -548,7 +552,9 @@ class Verification(_Base):
     # columns
     id = _Column(_Int, primary_key=True, index=True)
     user_id = _Column(_Int, _Fk("User.id"), nullable=False, index=True)
-    field_name = _Column(_Str, nullable=False)
+    field_name = _Column(
+        _Enum(_types.enums.VerificationFieldName), nullable=False
+    )
     value = _Column(_Str, nullable=False, unique=True)
 
     # relationships
@@ -591,7 +597,7 @@ class RestaurantEmployeePositionAccessLevel(_Base):
     task_type_group_id = _Column(
         _Int, _Fk("TaskTypeGroup.id"), primary_key=True
     )
-    role = _Column(_Str, nullable=False, index=True)
+    role = _Column(_Enum(_types.enums.AccessRole), nullable=False, index=True)
 
     # relationships
     position: _Map["RestaurantEmployeePosition"] = _rel(
@@ -667,7 +673,7 @@ class Material(_Base):
         _Int, _Fk("Item.id"), unique=True, nullable=False, index=True
     )
     name = _Column(_Str, unique=True, nullable=False, index=True)
-    unit = _Column(_Str, nullable=False)
+    unit = _Column(_Enum(_types.enums.ItemUnit), nullable=False)
     price = _Column(_Float, nullable=False)
     best_before = _Column(_Dt)
     group_id = _Column(_Int, _Fk("MaterialGroup.id"), nullable=False)
@@ -826,7 +832,9 @@ class Product(_Base):
     price = _Column(_Float)
     sale = _Column(_Float)
     best_before = _Column(_Dt)
-    status = _Column(_Str, nullable=False, index=True)
+    status = _Column(
+        _Enum(_types.enums.ProductStatus), nullable=False, index=True
+    )
     own_production = _Column(_Bool, nullable=False)
     avaible_in_online_order = _Column(_Bool, nullable=False, index=True)
     tare_id = _Column(_Int, _Fk("Tare.id"), nullable=True)
@@ -1272,6 +1280,9 @@ class Discount(_Base):
 
     # columns
     id = _Column(_Int, primary_key=True, index=True)
+    type = _Column(
+        _Enum(_types.enums.DiscountType), nullable=False, index=True
+    )
     promocode = _Column(_Str, nullable=True, index=True, unique=True)
     group_id = _Column(
         _Int, _Fk("DiscountGroup.id"), nullable=False, index=True

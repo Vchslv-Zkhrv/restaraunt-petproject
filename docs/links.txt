@@ -1,2 +1,1 @@
-db scheme on dbdiagram.io: https://dbdiagram.io/d/restaraunt-6523ca07ffbf5169f04ec5b4
-
+global-server database scheme on dbdiagram.io: https://dbdiagram.io/d/restaraunt-petproject/global-server-65646b7f3be1495787cca81c

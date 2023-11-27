@@ -27,7 +27,7 @@ async def spam():
 
 
 if __name__ == "__main__":
-    if "--clean" in _sys.argv:
+    if "--models" in _sys.argv:
         print(f"{_Fore.RED}Database will be cleared{_Style.RESET_ALL}")
         if input("Are you sure? (y/n) ").lower() == "y":
             _asyncio.run(init_models())

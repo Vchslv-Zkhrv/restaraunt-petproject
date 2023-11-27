@@ -9,7 +9,7 @@ oauth2schema = _security.OAuth2PasswordBearer(tokenUrl="/api/token")
 
 
 async def auth(
-    id: int, role: _types.literals.user_roles, password: str, db: _orm.Session
+    id: int, role: _types.enums.UserRole, password: str, db: _orm.Session
 ) -> _models.User:
     """
     Single authorization method for all users
