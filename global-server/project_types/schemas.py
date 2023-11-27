@@ -8,7 +8,7 @@ from typing import Union as _Union
 from pydantic import BaseModel as _Base
 from pydantic import Field as _Field
 
-from . import literals as _literals
+from . import enums as _enums
 
 
 class _Schema(_Base):
@@ -51,7 +51,7 @@ class TaskTarget(_Schema):
 class UserCreate(_Schema):
     hashed_password: str = _Field(alias="hashedPassword")
     actor_id: int
-    role: _literals.user_roles
+    role: _enums.UserRole
     email: str
     phone: _Optional[str]
     telegram: _Optional[int]
@@ -66,7 +66,7 @@ class User(_Schema):
     id: int
     hashed_password: str = _Field(alias="hashedPassword")
     actor_id: int
-    role: _literals.user_roles
+    role: _enums.UserRole
     email: str
     phone: _Optional[str]
     telegram: _Optional[int]
@@ -118,11 +118,11 @@ class EmployeePosition(_Schema):
 class EmployeePositionAccessLevel(_Schema):
     position_id: int = _Field(alias="positionId")
     task_type_id: int = _Field(alias="taskTypeId")
-    role: _literals.task_access_roles
+    role: _enums.AccessRole
 
 
 class EmployeePositionWithAccessLevels(EmployeePosition):
-    access_levels: _Dict[_literals.task_access_roles, _List[TaskType]]
+    access_levels: _Dict[_enums.AccessRole, _List[TaskType]]
 
 
 class EmployeeCreate(_Schema):
@@ -174,7 +174,7 @@ class MaterialGroupWithParentChild(MaterialGroup):
 
 class MaterialCreate(_Schema):
     name: str
-    unit: _literals.units
+    unit: _enums.ItemUnit
     price: float
     best_before: _Optional[_dt] = _Field(alias="bestBefore")
     group_id: int = _Field(alias="groupId")
@@ -183,7 +183,7 @@ class MaterialCreate(_Schema):
 class Material(_Schema):
     id: int
     name: str
-    unit: _literals.units
+    unit: _enums.ItemUnit
     price: float
     best_before: _Optional[_dt] = _Field(alias="bestBefore")
     group: MaterialGroupWithParentChild
@@ -199,7 +199,7 @@ class MaterialShort(_Schema):
 class MaterialGroupMaterial(_Schema):
     id: int
     name: str
-    unit: _literals.units
+    unit: _enums.ItemUnit
     price: float
     best_before: _Optional[_dt] = _Field(alias="bestBefore")
     created: _dt
@@ -260,7 +260,7 @@ class ProductCreate(_Schema):
     price: _Optional[float]
     sale: _Optional[float]
     best_before: _Optional[_dt] = _Field(alias="bestBefore")
-    status: _literals.product_statuses = _Field(default="inactive")
+    status: _enums.ProductStatus = _Field(default="inactive")
     own_production: bool = _Field(alias="ownProduction")
     ingridients: _List[ProductIngridient]
     available_extras: _List[ProductExtraIngridientCreate] = _Field(
@@ -274,7 +274,7 @@ class Product(_Schema):
     price: _Optional[float]
     sale: _Optional[float]
     best_before: _Optional[_dt] = _Field(alias="bestBefore")
-    status: _literals.product_statuses = _Field(default="inactive")
+    status: _enums.ProductStatus = _Field(default="inactive")
     own_production: bool = _Field(alias="ownProduction")
     ingridients: _List[ProductIngridient]
 
