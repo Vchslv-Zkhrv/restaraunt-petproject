@@ -1,17 +1,18 @@
+import re as _re
 from datetime import datetime as _dt
 from operator import attrgetter as _attr
 from typing import Dict as _Dict
 from typing import Generator as _Generator
 from typing import List as _List
 from typing import Optional as _Opt
+from typing import Set as _Set
 from typing import Tuple as _Tuple
 from typing import TypeVar as _TypeVar
 
 import passlib.hash as _hash
-import project_types as _types
-from database import Base as _Base
+from email_validator import EmailNotValidError as _EmailError
+from email_validator import validate_email as _validate_email
 from sqlalchemy import Boolean as _Bool
-from sqlalchemy import Column as _Column
 from sqlalchemy import DateTime as _Dt
 from sqlalchemy import Enum as _Enum
 from sqlalchemy import Float as _Float
@@ -20,11 +21,16 @@ from sqlalchemy import Integer as _Int
 from sqlalchemy import String as _Str
 from sqlalchemy import Time as _Time
 from sqlalchemy.orm import Mapped as _Map
+from sqlalchemy.orm import mapped_column as _column
 from sqlalchemy.orm import reconstructor as _reconstructor
 from sqlalchemy.orm import relationship as _rel
 from sqlalchemy.orm import validates as _validates
 from sqlalchemy.schema import PrimaryKeyConstraint as _PKConstraint
 from typeguard import check_type as _check_type
+
+from . import config as _cfg
+from . import project_types as _types
+from .database import Base as _Base
 
 
 T = _TypeVar("T")
@@ -38,7 +44,7 @@ class Actor(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
 
     # relationships
     created_tasks: _Map[_List["Task"]] = _rel(back_populates="author")
@@ -59,13 +65,15 @@ class Restaurant(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    default_actor_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    default_actor_id: _Map[int] = _column(
         _Int, _Fk("DefaultActor.id"), nullable=False, unique=True, index=True
     )
-    url = _Column(_Str, nullable=False, unique=True, index=True)
-    address = _Column(_Str, nullable=False, unique=True, index=True)
-    accepts_online_orders = _Column(_Bool, nullable=False, index=True)
+    url: _Map[str] = _column(_Str, nullable=False, unique=True, index=True)
+    address: _Map[str] = _column(_Str, nullable=False, unique=True, index=True)
+    accepts_online_orders: _Map[bool] = _column(
+        _Bool, nullable=False, index=True
+    )
 
     # relationships
     default_actor: _Map["DefaultActor"] = _rel(back_populates="restaurant")
@@ -104,14 +112,14 @@ class RestaurantExternalDepartment(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    default_actor_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    default_actor_id: _Map[int] = _column(
         _Int, _Fk("DefaultActor.id"), nullable=False, index=True
     )
-    restaurant_id = _Column(
+    restaurant_id: _Map[int] = _column(
         _Int, _Fk("Restaurant.id"), index=True, nullable=False
     )
-    type = _Column(
+    type: _Map[_types.enums.RestarauntExternalDepartmentType] = _column(
         _Enum(_types.enums.RestarauntExternalDepartmentType),
         nullable=False,
         index=True,
@@ -128,15 +136,15 @@ class RestaurantExternalDepartment(_Base):
         back_populates="restaurant_external_department"
     )
 
-    # methods
+    # properties
     @property
     def working_hours_tuple(
         self,
     ) -> _Tuple[_types.schemas.WeekdayWorkingHours]:
-        return tuple(  # pyright: ignore
+        return tuple(
             _types.schemas.WeekdayWorkingHours.model_validate(h)
             for h in sorted(self.working_hours, key=_attr("weekday"))
-        )
+        )  # pyright: ignore
 
     @property
     def working_hours_dict(
@@ -159,12 +167,14 @@ class RestaurantExternalDepartmentWorkingHours(_Base):
     """
 
     # columns
-    department_id = _Column(
+    department_id: _Map[int] = _column(
         _Int, _Fk("RestaurantExternalDepartment.id"), primary_key=True
     )
-    weekday = _Column(_Enum(_types.enums.Weekday), primary_key=True)
-    start = _Column(_Time, nullable=False, index=True)
-    finish = _Column(_Time, nullable=False, index=True)
+    weekday: _Map[_types.enums.Weekday] = _column(
+        _Enum(_types.enums.Weekday), primary_key=True
+    )
+    start: _Map[_dt] = _column(_Time, nullable=False, index=True)
+    finish: _Map[_dt] = _column(_Time, nullable=False, index=True)
 
     # relationships
     department: _Map["RestaurantExternalDepartment"] = _rel(
@@ -180,15 +190,15 @@ class RestaurantInternalDepartment(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, nullable=False, index=True)
-    default_actor_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, nullable=False, index=True)
+    default_actor_id: _Map[int] = _column(
         _Int, _Fk("DefaultActor.id"), nullable=False, index=True
     )
-    restaurant_id = _Column(
+    restaurant_id: _Map[int] = _column(
         _Int, _Fk("Restaurant.id"), index=True, nullable=False
     )
-    type = _Column(_Str, nullable=False, index=True)
+    type: _Map[str] = _column(_Str, nullable=False, index=True)
 
     # relationships
     restaurant: _Map["Restaurant"] = _rel(
@@ -213,10 +223,10 @@ class RestaurantInternalSubDepartment(_Base):
     """
 
     # columns
-    parent_id = _Column(
+    parent_id: _Map[int] = _column(
         _Int, _Fk("RestaurantInternalDepartment.id"), primary_key=True
     )
-    child_id = _Column(
+    child_id: _Map[int] = _column(
         _Int, _Fk("RestaurantInternalDepartment.id"), primary_key=True
     )
 
@@ -248,30 +258,36 @@ class DefaultActorTaskDelegation(_Base):
 
     @_reconstructor
     def _set_result_type(self):
-        self.attachments_type = globals()[
-            self.attachments_type_name
-        ]  # pyright: ignore
+        self.attachments_type = globals()[self.attachments_type_name]
 
     # columns
-    default_actor_id = _Column(_Int, _Fk("DefaultActor.id"), primary_key=True)
-    incoming_task_type_id = _Column(_Int, _Fk("TaskType.id"), primary_key=True)
-    outcoming_task_type_id = _Column(
+    default_actor_id: _Map[int] = _column(
+        _Int, _Fk("DefaultActor.id"), primary_key=True
+    )
+    incoming_task_type_id: _Map[int] = _column(
+        _Int, _Fk("TaskType.id"), primary_key=True
+    )
+    outcoming_task_type_id: _Map[int] = _column(
         _Int, _Fk("TaskType.id"), primary_key=True
     )
 
     # columns with python code that
     # must be used to collect delegation attachments
-    source = _Column(_Str, nullable=False)
-    filter_ = _Column(_Str, nullable=True)
-    attachments_type_name = _Column(_Str, nullable=False)
+    source: _Map[str] = _column(_Str, nullable=False)
+    filter_: _Map[str] = _column(_Str, nullable=True)
+    attachments_type_name: _Map[str] = _column(_Str, nullable=False)
 
     # columns for Task creation
-    task_name = _Column(_Str, nullable=False)
-    task_comment = _Column(_Str)
-    task_start_execution = _Column(_Dt, index=True)
-    task_fail_on_late_start = _Column(_Bool, nullable=False, default=False)
-    task_complete_before = _Column(_Dt)
-    task_fail_on_late_complete = _Column(_Bool, nullable=False, default=False)
+    task_name: _Map[str] = _column(_Str, nullable=False)
+    task_comment: _Map[str] = _column(_Str)
+    task_start_execution: _Map[_dt] = _column(_Dt, index=True)
+    task_fail_on_late_start: _Map[bool] = _column(
+        _Bool, nullable=False, default=False
+    )
+    task_complete_before: _Map[_dt] = _column(_Dt)
+    task_fail_on_late_complete: _Map[bool] = _column(
+        _Bool, nullable=False, default=False
+    )
 
     # relationships
     default_actor: _Map["DefaultActor"] = _rel(
@@ -294,11 +310,11 @@ class DefaultActorTaskDelegation(_Base):
 
     # methods
     def get_attachments(
-        self, attachments_type: T  # pyright: ignore
+        self, attachments_type: T
     ) -> _Generator[T, None, None]:
         # I'm not found any other ways to save type hinting
         if attachments_type is not self.attachment_type:
-            raise TypeError("wrong attachment type")
+            raise TypeError("wrong attachments type")
 
         # todo: find ways to replace
         attachments = eval(
@@ -329,11 +345,11 @@ class DefaultActor(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    actor_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    actor_id: _Map[int] = _column(
         _Int, _Fk("Actor.id"), index=True, unique=True, nullable=False
     )
-    name = _Column(_Str, unique=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, index=True)
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="default_actor")
@@ -357,8 +373,8 @@ class TaskType(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, index=True)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, index=True)
 
     # relationships
     restaurant_employee_position_access_levels: _Map[
@@ -379,18 +395,24 @@ class TaskType(_Base):
 class TaskTypeGroup(_Base):
     __tablename__ = "TaskTypeGroup"
 
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, index=True, nullable=False)
+    # columns
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, index=True, nullable=False)
 
+    # relationships
     types: _Map[_List["TaskTypeGroupTask"]] = _rel(back_populates="group")
 
 
 class TaskTypeGroupTask(_Base):
     __tablename__ = "TaskTypeGroupTask"
 
-    group_id = _Column(_Int, _Fk("TaskTypeGroup.id"), primary_key=True)
-    type_id = _Column(_Int, _Fk("TaskType.id"), primary_key=True)
+    # columns
+    group_id: _Map[int] = _column(
+        _Int, _Fk("TaskTypeGroup.id"), primary_key=True
+    )
+    type_id: _Map[int] = _column(_Int, _Fk("TaskType.id"), primary_key=True)
 
+    # relationships
     group: _Map["TaskTypeGroup"] = _rel(back_populates="types")
     type: _Map["TaskType"] = _rel(back_populates="groups")
 
@@ -406,15 +428,19 @@ class ActorAccessLevel(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True)
-    actor_id = _Column(_Int, _Fk("Actor.id"), nullable=False, index=True)
-    task_type_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True)
+    actor_id: _Map[int] = _column(
+        _Int, _Fk("Actor.id"), nullable=False, index=True
+    )
+    task_type_id: _Map[int] = _column(
         _Int, _Fk("TaskType.id"), nullable=False, index=True
     )
-    task_target_id = _Column(
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), index=True, unique=True
     )
-    role = _Column(_Enum(_types.enums.AccessRole), nullable=False, index=True)
+    role: _Map[_types.enums.AccessRole] = _column(
+        _Enum(_types.enums.AccessRole), nullable=False, index=True
+    )
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="personal_access_levels")
@@ -432,7 +458,7 @@ class TaskTarget(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
 
     # relationships
     task: _Map["Task"] = _rel(back_populates="target")
@@ -465,8 +491,8 @@ class TaskTargetType(_Base):
     __tablename__ = "TaskTargetType"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, nullable=False, unique=True, index=True)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, nullable=False, unique=True, index=True)
 
     # relationships
     targets: _Map[_List["TaskTargetTypeTarget"]] = _rel(back_populates="type")
@@ -476,8 +502,12 @@ class TaskTargetTypeTarget(_Base):
     __tablename__ = "TaskTargetTypeTarget"
 
     # columns
-    type_id = _Column(_Int, _Fk("TaskTargetType.id"), primary_key=True)
-    target_id = _Column(_Int, _Fk("TaskTarget.id"), primary_key=True)
+    type_id: _Map[int] = _column(
+        _Int, _Fk("TaskTargetType.id"), primary_key=True
+    )
+    target_id: _Map[int] = _column(
+        _Int, _Fk("TaskTarget.id"), primary_key=True
+    )
 
     type: _Map["TaskTargetType"] = _rel(back_populates="targets")
     target: _Map["TaskTarget"] = _rel(back_populates="types")
@@ -491,9 +521,9 @@ class SubTask(_Base):
     """
 
     # columns
-    child_id = _Column(_Int, _Fk("Task.id"), primary_key=True)
-    parent_id = _Column(_Int, _Fk("Task.id"), primary_key=True)
-    priority = _Column(_Int, nullable=False, default=0)
+    child_id: _Map[int] = _column(_Int, _Fk("Task.id"), primary_key=True)
+    parent_id: _Map[int] = _column(_Int, _Fk("Task.id"), primary_key=True)
+    priority: _Map[int] = _column(_Int, nullable=False, default=0)
 
     # relationships
     subtasks: _Map[_List["Task"]] = _rel(back_populates="parent")
@@ -511,21 +541,25 @@ class User(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    hashed_password = _Column(_Str, nullable=False)
-    actor_id = _Column(_Int, _Fk("Actor.id"), nullable=False, index=True)
-    role = _Column(_Str, nullable=False, index=True)
-    email = _Column(_Str, unique=True, index=True, nullable=False)
-    phone = _Column(_Int, unique=True, index=True)
-    telegram = _Column(_Int, unique=True, index=True)
-    lname = _Column(_Str)
-    fname = _Column(_Str, nullable=False)
-    sname = _Column(_Str)
-    gender = _Column(_Bool)
-    address = _Column(_Str)
-    last_online = _Column(_Dt, nullable=False, default=_dt.utcnow, index=True)
-    created = _Column(_Dt, nullable=False, index=True)
-    deleted = _Column(_Dt)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    hashed_password: _Map[str] = _column(_Str, nullable=False)
+    actor_id: _Map[int] = _column(
+        _Int, _Fk("Actor.id"), nullable=False, index=True
+    )
+    role: _Map[str] = _column(_Str, nullable=False, index=True)
+    email: _Map[str] = _column(_Str, unique=True, index=True, nullable=False)
+    phone: _Map[int] = _column(_Int, unique=True, index=True)
+    telegram: _Map[int] = _column(_Int, unique=True, index=True)
+    lname: _Map[str] = _column(_Str)
+    fname: _Map[str] = _column(_Str, nullable=False)
+    sname: _Map[str] = _column(_Str)
+    gender: _Map[bool] = _column(_Bool)
+    address: _Map[str] = _column(_Str)
+    last_online: _Map[_dt] = _column(
+        _Dt, nullable=False, default=_dt.utcnow, index=True
+    )
+    created: _Map[_dt] = _column(_Dt, nullable=False, index=True)
+    deleted: _Map[_dt] = _column(_Dt)
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="user")
@@ -537,9 +571,28 @@ class User(_Base):
 
     # methods
     def verify_password(self, password: str) -> bool:
-        return _hash.bcrypt.verify(
-            password, self.hashed_password  # pyright: ignore
-        )
+        return _hash.bcrypt.verify(password, self.hashed_password)
+
+    # verificators
+    @_validates("email")
+    def _validate_email(self, _, email: str):
+        try:
+            _validate_email(email, check_deliverability=False)
+        except _EmailError:
+            raise _types.exceptions.EmailValidationError
+
+    @_validates("phone")
+    def _validate_phone(self, _, phone: str):
+        if not _re.match(_cfg.PHONE_VALIDATION_REGEX, phone):
+            raise _types.exceptions.PhoneValidationError
+
+    # todo: check tg user_id existence
+
+    # properties
+    @property
+    def verificated_fields(self) -> _Set[_types.enums.VerificationFieldName]:
+        names = set(e for e in _types.enums.VerificationFieldName)
+        return names - set(v.field_name for v in self.verifications)
 
 
 class Verification(_Base):
@@ -550,12 +603,14 @@ class Verification(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    user_id = _Column(_Int, _Fk("User.id"), nullable=False, index=True)
-    field_name = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    user_id: _Map[int] = _column(
+        _Int, _Fk("User.id"), nullable=False, index=True
+    )
+    field_name: _Map[_types.enums.VerificationFieldName] = _column(
         _Enum(_types.enums.VerificationFieldName), nullable=False
     )
-    value = _Column(_Str, nullable=False, unique=True)
+    value: _Map[str] = _column(_Str, nullable=False, unique=True)
 
     # relationships
     user: _Map["User"] = _rel(back_populates="verifications")
@@ -569,10 +624,12 @@ class RestaurantEmployeePosition(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, nullable=False, index=True)
-    salary = _Column(_Float, nullable=False)
-    expierence_coefficient = _Column(_Float, nullable=False, default=1)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, nullable=False, index=True)
+    salary: _Map[float] = _column(_Float, nullable=False)
+    expierence_coefficient: _Map[float] = _column(
+        _Float, nullable=False, default=1
+    )
 
     # relationships
     employees: _Map[_List["RestaurantEmployee"]] = _rel(
@@ -591,13 +648,15 @@ class RestaurantEmployeePositionAccessLevel(_Base):
     """
 
     # columns
-    position_id = _Column(
+    position_id = _column(
         _Int, _Fk("RestaurantEmployeePosition.id"), primary_key=True
     )
-    task_type_group_id = _Column(
+    task_type_group_id = _column(
         _Int, _Fk("TaskTypeGroup.id"), primary_key=True
     )
-    role = _Column(_Enum(_types.enums.AccessRole), nullable=False, index=True)
+    role: _Map[_types.enums.AccessRole] = _column(
+        _Enum(_types.enums.AccessRole), nullable=False, index=True
+    )
 
     # relationships
     position: _Map["RestaurantEmployeePosition"] = _rel(
@@ -619,15 +678,17 @@ class RestaurantEmployee(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    user_id = _Column(_Int, _Fk("User.id"), nullable=False, unique=True)
-    hiring_date = _Column(_Dt, nullable=False)
-    fired_date = _Column(_Dt)
-    on_shift = _Column(_Bool, nullable=False, index=True)
-    position_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    user_id: _Map[int] = _column(
+        _Int, _Fk("User.id"), nullable=False, unique=True
+    )
+    hiring_date: _Map[_dt] = _column(_Dt, nullable=False)
+    fired_date: _Map[_dt] = _column(_Dt)
+    on_shift: _Map[bool] = _column(_Bool, nullable=False, index=True)
+    position_id: _Map[int] = _column(
         _Int, _Fk("RestaurantEmployeePosition.id"), nullable=False, index=True
     )
-    restaurant_id = _Column(_Int, _Fk("Restaurant.id"), index=True)
+    restaurant_id: _Map[int] = _column(_Int, _Fk("Restaurant.id"), index=True)
 
     # relationships
     user: _Map["User"] = _rel(back_populates="restaurant_employee")
@@ -644,11 +705,11 @@ class Customer(_Base):
     __tablename__ = "Customer"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    user_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    user_id: _Map[int] = _column(
         _Int, _Fk("User.id"), nullable=False, unique=True, index=True
     )
-    bonus_points = _Column(_Float, nullable=False, default=0)
+    bonus_points: _Map[float] = _column(_Float, nullable=False, default=0)
 
     # relationships
     user: _Map["User"] = _rel(back_populates="customer")
@@ -668,16 +729,20 @@ class Material(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    item_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    item_id: _Map[int] = _column(
         _Int, _Fk("Item.id"), unique=True, nullable=False, index=True
     )
-    name = _Column(_Str, unique=True, nullable=False, index=True)
-    unit = _Column(_Enum(_types.enums.ItemUnit), nullable=False)
-    price = _Column(_Float, nullable=False)
-    best_before = _Column(_Dt)
-    group_id = _Column(_Int, _Fk("MaterialGroup.id"), nullable=False)
-    created = _Column(_Dt, nullable=False)
+    name: _Map[str] = _column(_Str, unique=True, nullable=False, index=True)
+    unit: _Map[_types.enums.ItemUnit] = _column(
+        _Enum(_types.enums.ItemUnit), nullable=False
+    )
+    price: _Map[float] = _column(_Float, nullable=False)
+    best_before: _Map[_dt] = _column(_Dt)
+    group_id: _Map[int] = _column(
+        _Int, _Fk("MaterialGroup.id"), nullable=False
+    )
+    created: _Map[_dt] = _column(_Dt, nullable=False)
 
     # relationships
     item: _Map["Item"] = _rel(back_populates="material")
@@ -697,9 +762,13 @@ class MaterialStockBalance(_Base):
     __tablename__ = "MaterialStockBalance"
 
     # columns
-    material_id = _Column(_Int, _Fk("Material.id"), primary_key=True)
-    restaurant_id = _Column(_Int, _Fk("Restaurant.id"), primary_key=True)
-    balance = _Column(_Float, nullable=True)
+    material_id: _Map[int] = _column(
+        _Int, _Fk("Material.id"), primary_key=True
+    )
+    restaurant_id: _Map[int] = _column(
+        _Int, _Fk("Restaurant.id"), primary_key=True
+    )
+    balance: _Map[float] = _column(_Float, nullable=True)
 
     # relationships
     material: _Map["Material"] = _rel(back_populates="stock_balance")
@@ -713,8 +782,8 @@ class MaterialGroup(_Base):
     __tablename__ = "MaterialGroup"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, nullable=False, unique=True, index=True)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, nullable=False, unique=True, index=True)
 
     # relationships
     parent_group: _Map[_Opt["MaterialSubGroup"]] = _rel(back_populates="child")
@@ -725,8 +794,12 @@ class MaterialSubGroup(_Base):
     __tablename__ = "MaterialSubGroup"
 
     # columns
-    parent_id = _Column(_Int, _Fk("MaterialGroup.id"), primary_key=True)
-    child_id = _Column(_Int, _Fk("MaterialGroup.id"), primary_key=True)
+    parent_id: _Map[int] = _column(
+        _Int, _Fk("MaterialGroup.id"), primary_key=True
+    )
+    child_id: _Map[int] = _column(
+        _Int, _Fk("MaterialGroup.id"), primary_key=True
+    )
 
     # relationships
     parent: _Map["MaterialGroup"] = _rel(back_populates="subgroups")
@@ -740,11 +813,11 @@ class Supply(_Base):
     __tablename__ = "Supply"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    restaurant_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    restaurant_id: _Map[int] = _column(
         _Int, _Fk("Restaurant.id"), nullable=False, index=True
     )
-    task_target_id = _Column(
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), nullable=False, index=True
     )
 
@@ -758,10 +831,10 @@ class SupplyItem(_Base):
     __tablename__ = "SupplyItem"
 
     # columns
-    supply_id = _Column(_Int, _Fk("Supply.id"), primary_key=True)
-    item_id = _Column(_Int, _Fk("Item.id"), primary_key=True)
-    count = _Column(_Float, nullable=False)
-    price = _Column(_Float, nullable=True)
+    supply_id: _Map[int] = _column(_Int, _Fk("Supply.id"), primary_key=True)
+    item_id: _Map[int] = _column(_Int, _Fk("Item.id"), primary_key=True)
+    count: _Map[float] = _column(_Float, nullable=False)
+    price: _Map[float] = _column(_Float, nullable=True)
 
     # relationships
     supply: _Map["Supply"] = _rel(back_populates="items")
@@ -779,13 +852,13 @@ class Ingridient(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, nullable=False, index=True)
-    calories = _Column(_Float, nullable=False)
-    fats = _Column(_Float, nullable=False)
-    proteins = _Column(_Float, nullable=False)
-    carbohidrates = _Column(_Float, nullable=False)
-    created = _Column(_Dt, nullable=False)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, nullable=False, index=True)
+    calories: _Map[float] = _column(_Float, nullable=False)
+    fats: _Map[float] = _column(_Float, nullable=False)
+    proteins: _Map[float] = _column(_Float, nullable=False)
+    carbohidrates: _Map[float] = _column(_Float, nullable=False)
+    created: _Map[_dt] = _column(_Dt, nullable=False)
 
     # relationships
     materials: _Map[_List["IngridientMaterial"]] = _rel(
@@ -807,9 +880,13 @@ class IngridientMaterial(_Base):
     """
 
     # columns
-    material_id = _Column(_Int, _Fk("Material.id"), primary_key=True)
-    ingridient_id = _Column(_Int, _Fk("Ingridient.id"), primary_key=True)
-    im_ratio = _Column(_Float, nullable=False)
+    material_id: _Map[int] = _column(
+        _Int, _Fk("Material.id"), primary_key=True
+    )
+    ingridient_id: _Map[int] = _column(
+        _Int, _Fk("Ingridient.id"), primary_key=True
+    )
+    im_ratio: _Map[float] = _column(_Float, nullable=False)
 
     # relationships
     material: _Map["Material"] = _rel(back_populates="ingridients")
@@ -827,17 +904,19 @@ class Product(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, nullable=False, unique=True, index=True)
-    price = _Column(_Float)
-    sale = _Column(_Float)
-    best_before = _Column(_Dt)
-    status = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, nullable=False, unique=True, index=True)
+    price: _Map[float] = _column(_Float)
+    sale: _Map[float] = _column(_Float)
+    best_before: _Map[_dt] = _column(_Dt)
+    status: _Map[_types.enums.ProductStatus] = _column(
         _Enum(_types.enums.ProductStatus), nullable=False, index=True
     )
-    own_production = _Column(_Bool, nullable=False)
-    avaible_in_online_order = _Column(_Bool, nullable=False, index=True)
-    tare_id = _Column(_Int, _Fk("Tare.id"), nullable=True)
+    own_production: _Map[bool] = _column(_Bool, nullable=False)
+    avaible_in_online_order: _Map[bool] = _column(
+        _Bool, nullable=False, index=True
+    )
+    tare_id: _Map[int] = _column(_Int, _Fk("Tare.id"), nullable=True)
 
     # relationships
     ingridients: _Map[_List["ProductIngridient"]] = _rel(
@@ -872,9 +951,13 @@ class RestaurantProduct(_Base):
     Product selling in a restaurant
     """
 
-    product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
-    restaurant_id = _Column(_Int, _Fk("Restaurant.id"), primary_key=True)
-    suspended = _Column(_Bool, nullable=False, default=False, index=True)
+    product_id: _Map[int] = _column(_Int, _Fk("Product.id"), primary_key=True)
+    restaurant_id: _Map[int] = _column(
+        _Int, _Fk("Restaurant.id"), primary_key=True
+    )
+    suspended: _Map[bool] = _column(
+        _Bool, nullable=False, default=False, index=True
+    )
 
     product: _Map["Product"] = _rel(back_populates="restaurants")
     restaurant: _Map["Restaurant"] = _rel(back_populates="products")
@@ -890,12 +973,14 @@ class ProductIngridient(_Base):
     """
 
     # columns
-    product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
-    ingridient_id = _Column(_Int, _Fk("Ingridient.id"), primary_key=True)
-    ip_ratio = _Column(_Float, nullable=False)
-    editable = _Column(_Bool, nullable=False)
-    edit_price = _Column(_Float)
-    max_change = _Column(_Float)
+    product_id: _Map[int] = _column(_Int, _Fk("Product.id"), primary_key=True)
+    ingridient_id: _Map[int] = _column(
+        _Int, _Fk("Ingridient.id"), primary_key=True
+    )
+    ip_ratio: _Map[float] = _column(_Float, nullable=False)
+    editable: _Map[bool] = _column(_Bool, nullable=False)
+    edit_price: _Map[float] = _column(_Float)
+    max_change: _Map[float] = _column(_Float)
 
     # relationships
     product: _Map["Product"] = _rel(back_populates="ingridients")
@@ -913,8 +998,10 @@ class CustomerFavoriteProduct(_Base):
     """
 
     # columns
-    customer_id = _Column(_Int, _Fk("Customer.id"), primary_key=True)
-    product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
+    customer_id: _Map[int] = _column(
+        _Int, _Fk("Customer.id"), primary_key=True
+    )
+    product_id: _Map[int] = _column(_Int, _Fk("Product.id"), primary_key=True)
 
     # relationships
     customer: _Map["Customer"] = _rel(back_populates="favorite_products")
@@ -934,9 +1021,11 @@ class CustomerShoppingCartProduct(_Base):
     """
 
     # columns
-    customer_id = _Column(_Int, _Fk("Customer.id"), primary_key=True)
-    product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
-    count = _Column(_Int, nullable=False, default=1)
+    customer_id: _Map[int] = _column(
+        _Int, _Fk("Customer.id"), primary_key=True
+    )
+    product_id: _Map[int] = _column(_Int, _Fk("Product.id"), primary_key=True)
+    count: _Map[int] = _column(_Int, nullable=False, default=1)
 
     # relationships
     customer: _Map["Customer"] = _rel(back_populates="shopping_cart_products")
@@ -956,14 +1045,14 @@ class CustomerOrder(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    task_target_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), nullable=False, unique=False, index=True
     )
-    restaurant_id = _Column(
+    restaurant_id: _Map[int] = _column(
         _Int, _Fk("Restaurant.id"), nullable=False, index=True
     )
-    status = _Column(_Str, nullable=False)
+    status: _Map[str] = _column(_Str, nullable=False)
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="customer_order")
@@ -984,14 +1073,20 @@ class CustomerOrderProduct(_Base):
     __tablename__ = "CustomerOrderProduct"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    order_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    order_id: _Map[int] = _column(
         _Int, _Fk("CustomerOrder.id"), nullable=False, index=True
     )
-    product_id = _Column(_Int, _Fk("Product.id"), nullable=False, index=True)
-    discount_option_id = _Column(_Int, _Fk("DiscountOption.id"), nullable=True)
-    paid_by_bonus_points = _Column(_Bool, nullable=False, default=False)
-    count = _Column(_Int, nullable=False, default=1)
+    product_id: _Map[int] = _column(
+        _Int, _Fk("Product.id"), nullable=False, index=True
+    )
+    discount_option_id: _Map[int] = _column(
+        _Int, _Fk("DiscountOption.id"), nullable=True
+    )
+    paid_by_bonus_points: _Map[bool] = _column(
+        _Bool, nullable=False, default=False
+    )
+    count: _Map[int] = _column(_Int, nullable=False, default=1)
 
     # relationships
     customer_order: _Map["CustomerOrder"] = _rel(back_populates="products")
@@ -1009,8 +1104,8 @@ class OnlineOrder(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    order_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    order_id: _Map[int] = _column(
         _Int, _Fk("CustomerOrder.id"), nullable=False, index=True, unique=True
     )
 
@@ -1026,9 +1121,11 @@ class ProductAvailableExtraIngridient(_Base):
     """
 
     # columns
-    product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
-    ingridient_id = _Column(_Int, _Fk("Ingridient.id"), primary_key=True)
-    price = _Column(_Float, nullable=False)
+    product_id: _Map[int] = _column(_Int, _Fk("Product.id"), primary_key=True)
+    ingridient_id: _Map[int] = _column(
+        _Int, _Fk("Ingridient.id"), primary_key=True
+    )
+    price: _Map[float] = _column(_Float, nullable=False)
 
     # relationships
     product: _Map["Product"] = _rel(
@@ -1050,11 +1147,13 @@ class CustomerOrderProductIngridientChange(_Base):
     """
 
     # columns
-    order_product_id = _Column(
+    order_product_id: _Map[int] = _column(
         _Int, _Fk("CustomerOrderProduct.id"), primary_key=True
     )
-    ingridient_id = _Column(_Int, _Fk("Ingridient.id"), primary_key=True)
-    ip_ratio_change = _Column(_Float, nullable=False)
+    ingridient_id: _Map[int] = _column(
+        _Int, _Fk("Ingridient.id"), primary_key=True
+    )
+    ip_ratio_change: _Map[float] = _column(_Float, nullable=False)
 
     # relationships
     order_product: _Map["CustomerOrderProduct"] = _rel(
@@ -1076,11 +1175,13 @@ class CustomerOrderProductExtraIngridient(_Base):
     """
 
     # columns
-    order_product_id = _Column(
+    order_product_id: _Map[int] = _column(
         _Int, _Fk("CustomerOrderProduct.id"), primary_key=True
     )
-    ingridient_id = _Column(_Int, _Fk("Ingridient.id"), primary_key=True)
-    count = _Column(_Int, nullable=False, default=1)
+    ingridient_id: _Map[int] = _column(
+        _Int, _Fk("Ingridient.id"), primary_key=True
+    )
+    count: _Map[int] = _column(_Int, nullable=False, default=1)
 
     # relationships
     order_product: _Map["CustomerOrderProduct"] = _rel(
@@ -1102,9 +1203,9 @@ class Table(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    number = _Column(_Int, nullable=False, index=True)
-    location_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    number: _Map[int] = _column(_Int, nullable=False, index=True)
+    location_id: _Map[int] = _column(
         _Int, _Fk("TableLocation.id"), nullable=False, index=True
     )
 
@@ -1121,9 +1222,9 @@ class TableLocation(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, index=True, nullable=False)
-    restaurant_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, index=True, nullable=False)
+    restaurant_id: _Map[int] = _column(
         _Int, _Fk("Restaurant.id"), nullable=False, index=True
     )
 
@@ -1136,9 +1237,9 @@ class WaiterOrder(_Base):
     __tablename__ = "WaiterOrder"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    table_id = _Column(_Int, _Fk("Table.id"), nullable=False)
-    order_Id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    table_id: _Map[int] = _column(_Int, _Fk("Table.id"), nullable=False)
+    order_Id: _Map[int] = _column(
         _Int, _Fk("CustomerOrder.id"), nullable=False, unique=True, index=True
     )
 
@@ -1151,14 +1252,14 @@ class Salary(_Base):
     __tablename__ = "Salary"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    task_target_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), nullable=False, unique=True, index=True
     )
-    restaurant_employee_id = _Column(
+    restaurant_employee_id: _Map[int] = _column(
         _Int, _Fk("RestaurantEmployee.id"), nullable=False, index=True
     )
-    bonus = _Column(_Float)
+    bonus: _Map[float] = _column(_Float)
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="salary")
@@ -1175,8 +1276,8 @@ class AllergicFlag(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, index=True, nullable=False)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, index=True, nullable=False)
 
     # relationships
     materials: _Map[_List["MaterialAllergicFlag"]] = _rel(
@@ -1192,8 +1293,12 @@ class MaterialAllergicFlag(_Base):
     """
 
     # columns
-    material_id = _Column(_Int, _Fk("Material.id"), primary_key=True)
-    flag_id = _Column(_Int, _Fk("AllergicFlag.id"), primary_key=True)
+    material_id: _Map[int] = _column(
+        _Int, _Fk("Material.id"), primary_key=True
+    )
+    flag_id: _Map[int] = _column(
+        _Int, _Fk("AllergicFlag.id"), primary_key=True
+    )
 
     # relationships
     material: _Map["Material"] = _rel(back_populates="allergic_flags")
@@ -1211,8 +1316,8 @@ class ProductCategory(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, index=True, nullable=False)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, index=True, nullable=False)
 
     # relationships
     products: _Map[_List["ProductCategoryProduct"]] = _rel(
@@ -1224,8 +1329,10 @@ class ProductCategoryProduct(_Base):
     __tablename__ = "ProductCategoryProduct"
 
     # columns
-    product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
-    category_id = _Column(_Int, _Fk("ProductCategory.id"), primary_key=True)
+    product_id: _Map[int] = _column(_Int, _Fk("Product.id"), primary_key=True)
+    category_id: _Map[int] = _column(
+        _Int, _Fk("ProductCategory.id"), primary_key=True
+    )
 
     # relationships
     product: _Map["Product"] = _rel(back_populates="category")
@@ -1239,11 +1346,11 @@ class CustomerPayment(_Base):
     __tablename__ = "CustomerPayment"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    order_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    order_id: _Map[int] = _column(
         _Int, _Fk("CustomerOrder.id"), unique=True, nullable=False, index=True
     )
-    task_target_id = _Column(
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), nullable=False, index=True, unique=True
     )
 
@@ -1260,9 +1367,9 @@ class DiscountGroup(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, nullable=False)
-    task_target_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, nullable=False)
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), index=True, unique=True, nullable=False
     )
 
@@ -1279,20 +1386,24 @@ class Discount(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    type = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    type: _Map[_types.enums.DiscountType] = _column(
         _Enum(_types.enums.DiscountType), nullable=False, index=True
     )
-    promocode = _Column(_Str, nullable=True, index=True, unique=True)
-    group_id = _Column(
+    promocode: _Map[str] = _column(
+        _Str, nullable=True, index=True, unique=True
+    )
+    group_id: _Map[int] = _column(
         _Int, _Fk("DiscountGroup.id"), nullable=False, index=True
     )
-    delivery_only = _Column(_Bool, nullable=False, index=True, default=False)
-    name = _Column(_Str, index=True, nullable=False)
-    description = _Column(_Str, nullable=True)
-    condition = _Column(_Str, nullable=True)
-    value = _Column(_Str, nullable=False)
-    task_target_id = _Column(
+    delivery_only: _Map[bool] = _column(
+        _Bool, nullable=False, index=True, default=False
+    )
+    name: _Map[str] = _column(_Str, index=True, nullable=False)
+    description: _Map[str] = _column(_Str, nullable=True)
+    condition: _Map[str] = _column(_Str, nullable=True)
+    value: _Map[str] = _column(_Str, nullable=False)
+    task_target_id = _column(
         _Int, _Fk("TaskTarget.id"), nullable=False, unique=True
     )
 
@@ -1313,8 +1424,12 @@ class RestaurantDiscount(_Base):
     """
 
     # columns
-    restaurant_id = _Column(_Int, _Fk("Restaurant.id"), primary_key=True)
-    discount_id = _Column(_Int, _Fk("Discount.id"), primary_key=True)
+    restaurant_id: _Map[int] = _column(
+        _Int, _Fk("Restaurant.id"), primary_key=True
+    )
+    discount_id: _Map[int] = _column(
+        _Int, _Fk("Discount.id"), primary_key=True
+    )
 
     # relationships
     restaurant: _Map["Restaurant"] = _rel(back_populates="discounts")
@@ -1332,10 +1447,12 @@ class CustomerOrderDiscount(_Base):
     """
 
     # columns
-    customer_order_id = _Column(
+    customer_order_id: _Map[int] = _column(
         _Int, _Fk("CustomerOrder.id"), primary_key=True
     )
-    discount_id = _Column(_Int, _Fk("Discount.id"), primary_key=True)
+    discount_id: _Map[int] = _column(
+        _Int, _Fk("Discount.id"), primary_key=True
+    )
 
     # relationshis
     customer_order: _Map["CustomerOrder"] = _rel(back_populates="discounts")
@@ -1351,9 +1468,9 @@ class DiscountOption(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    title = _Column(_Str, nullable=True)
-    discount_id = _Column(_Int, _Fk("Discount.id"), nullable=False)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    title: _Map[str] = _column(_Str, nullable=True)
+    discount_id: _Map[int] = _column(_Int, _Fk("Discount.id"), nullable=False)
 
     # relationships
     discount: _Map["Discount"] = _rel(back_populates="options")
@@ -1369,10 +1486,10 @@ class DiscountOptionProduct(_Base):
     """
 
     # columns
-    discount_option_id = _Column(
+    discount_option_id: _Map[int] = _column(
         _Int, _Fk("DiscountOption.id"), primary_key=True
     )
-    product_id = _Column(_Int, _Fk("Product.id"), primary_key=True)
+    product_id: _Map[int] = _column(_Int, _Fk("Product.id"), primary_key=True)
 
     # relationships
     option: _Map["DiscountOption"] = _rel(back_populates="products")
@@ -1387,8 +1504,8 @@ class SupplyOrder(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    task_target_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), index=True, nullable=False, unique=True
     )
 
@@ -1403,9 +1520,11 @@ class SupplyOrderItem(_Base):
     __tablename__ = "SupplyOrderItem"
 
     # columns
-    supply_order_id = _Column(_Int, _Fk("SupplyOrder.id"), primary_key=True)
-    item_id = _Column(_Int, _Fk("Item.id"), primary_key=True)
-    count = _Column(_Float, nullable=False)
+    supply_order_id: _Map[int] = _column(
+        _Int, _Fk("SupplyOrder.id"), primary_key=True
+    )
+    item_id: _Map[int] = _column(_Int, _Fk("Item.id"), primary_key=True)
+    count: _Map[float] = _column(_Float, nullable=False)
 
     # relationships
     supply_order: _Map["SupplyOrder"] = _rel(back_populates="items")
@@ -1423,10 +1542,12 @@ class WriteOffReason(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, nullable=False, index=True)
-    descritption = _Column(_Str)
-    group_id = _Column(_Int, _Fk("WriteOffReasonGroup.id"), nullable=False)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, nullable=False, index=True)
+    descritption: _Map[str] = _column(_Str)
+    group_id: _Map[int] = _column(
+        _Int, _Fk("WriteOffReasonGroup.id"), nullable=False
+    )
 
     # relationships
     group: _Map["WriteOffReasonGroup"] = _rel(back_populates="reasons")
@@ -1437,9 +1558,9 @@ class WriteOffReasonGroup(_Base):
     __tablename__ = "WriteOffReasonGroup"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, unique=True, nullable=False, index=True)
-    description = _Column(_Str, nullable=False, default="")
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, nullable=False, index=True)
+    description: _Map[str] = _column(_Str, nullable=False, default="")
 
     # relationships
     reasons: _Map[_List["WriteOffReason"]] = _rel(back_populates="group")
@@ -1449,11 +1570,11 @@ class WriteOff(_Base):
     __tablename__ = "WriteOff"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    task_target_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), nullable=False, index=True, unique=True
     )
-    reason_id = _Column(
+    reason_id: _Map[int] = _column(
         _Int, _Fk("WriteOffReason.id"), nullable=False, index=True
     )
 
@@ -1467,9 +1588,11 @@ class WriteOffItem(_Base):
     __tablename__ = "WriteOffItem"
 
     # columns
-    writeoff_id = _Column(_Int, _Fk("WriteOff.id"), primary_key=True)
-    item_id = _Column(_Int, _Fk("Item.id"), primary_key=True)
-    count = _Column(_Float, nullable=False)
+    writeoff_id: _Map[int] = _column(
+        _Int, _Fk("WriteOff.id"), primary_key=True
+    )
+    item_id: _Map[int] = _column(_Int, _Fk("Item.id"), primary_key=True)
+    count: _Map[float] = _column(_Float, nullable=False)
 
     # relationshils
     writeoff: _Map["WriteOff"] = _rel(back_populates="materials")
@@ -1483,11 +1606,11 @@ class SupplyPayment(_Base):
     __tablename__ = "SupplyPayment"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    task_target_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    task_target_id: _Map[int] = _column(
         _Int, _Fk("TaskTarget.id"), index=True, unique=True, nullable=False
     )
-    supply_id = _Column(
+    supply_id: _Map[int] = _column(
         _Int, _Fk("Supply.id"), index=True, unique=True, nullable=False
     )
 
@@ -1504,13 +1627,13 @@ class Tare(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    item_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    item_id: _Map[int] = _column(
         _Int, _Fk("Item.id"), unique=True, nullable=False, index=True
     )
-    name = _Column(_Str, nullable=False)
-    price = _Column(_Float, nullable=True)
-    stock_balance = _Column(_Int, nullable=True)
+    name: _Map[str] = _column(_Str, nullable=False)
+    price: _Map[float] = _column(_Float, nullable=True)
+    stock_balance: _Map[int] = _column(_Int, nullable=True)
 
     # relationships
     item: _Map["Item"] = _rel(back_populates="tare")
@@ -1525,13 +1648,15 @@ class Inventory(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    item_id = _Column(
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    item_id: _Map[int] = _column(
         _Int, _Fk("Item.id"), unique=True, nullable=False, index=True
     )
-    name = _Column(_Str, nullable=False, unique=True)
-    description = _Column(_Str, nullable=False)
-    group_id = _Column(_Int, _Fk("InventoryGroup.id"), nullable=False)
+    name: _Map[str] = _column(_Str, nullable=False, unique=True)
+    description: _Map[str] = _column(_Str, nullable=False)
+    group_id: _Map[int] = _column(
+        _Int, _Fk("InventoryGroup.id"), nullable=False
+    )
 
     # relationships
     item: _Map["Item"] = _rel(back_populates="inventory")
@@ -1542,8 +1667,8 @@ class InventoryGroup(_Base):
     __tablename__ = "InventoryGroup"
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, nullable=False, unique=True)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, nullable=False, unique=True)
 
     # relationships
     inventory: _Map[_List["Inventory"]] = _rel(back_populates="group")
@@ -1557,8 +1682,12 @@ class InventorySubGroup(_Base):
     __tablename__ = "InventorySubGroup"
 
     # columns
-    parent_id = _Column(_Int, _Fk("InventoryGroup.id"), primary_key=True)
-    child_id = _Column(_Int, _Fk("InventoryGroup.id"), primary_key=True)
+    parent_id: _Map[int] = _column(
+        _Int, _Fk("InventoryGroup.id"), primary_key=True
+    )
+    child_id: _Map[int] = _column(
+        _Int, _Fk("InventoryGroup.id"), primary_key=True
+    )
 
     # relationships
     parent: _Map["InventoryGroup"] = _rel(back_populates="subgroups")
@@ -1576,7 +1705,7 @@ class Item(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
 
     # relationships
     material: _Map[_Opt["Material"]] = _rel(back_populates="item")
@@ -1594,23 +1723,37 @@ class Task(_Base):
     """
 
     # columns
-    id = _Column(_Int, primary_key=True, index=True)
-    name = _Column(_Str, nullable=False)
-    comment = _Column(_Str)
-    status = _Column(_Str, nullable=False, index=True)
-    target_id = _Column(_Int, _Fk("TaskTarget.id"), nullable=False, index=True)
-    created = _Column(_Dt, nullable=False, default=_dt.utcnow, index=True)
-    author_id = _Column(_Int, _Fk("Actor.id"), nullable=False, index=True)
-    changed = _Column(_Bool, nullable=False, default=False)
-    start_execution = _Column(_Dt, index=True)
-    execution_started = _Column(_Dt)
-    fail_on_late_start = _Column(_Bool, nullable=False, default=False)
-    complete_before = _Column(_Dt)
-    completed = _Column(_Dt)
-    fail_on_late_complete = _Column(_Bool, nullable=False, default=False)
-    executor_id = _Column(_Int, _Fk("Actor.id"), nullable=False, index=True)
-    approved = _Column(_Dt, index=True)
-    inspector_id = _Column(_Int, _Fk("Actor.id"), nullable=False, index=True)
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, nullable=False)
+    comment: _Map[str] = _column(_Str)
+    status: _Map[str] = _column(_Str, nullable=False, index=True)
+    target_id: _Map[int] = _column(
+        _Int, _Fk("TaskTarget.id"), nullable=False, index=True
+    )
+    created: _Map[_dt] = _column(
+        _Dt, nullable=False, default=_dt.utcnow, index=True
+    )
+    author_id: _Map[int] = _column(
+        _Int, _Fk("Actor.id"), nullable=False, index=True
+    )
+    changed: _Map[bool] = _column(_Bool, nullable=False, default=False)
+    start_execution: _Map[_dt] = _column(_Dt, index=True)
+    execution_started: _Map[_dt] = _column(_Dt)
+    fail_on_late_start: _Map[bool] = _column(
+        _Bool, nullable=False, default=False
+    )
+    complete_before: _Map[_dt] = _column(_Dt)
+    completed: _Map[_dt] = _column(_Dt)
+    fail_on_late_complete: _Map[bool] = _column(
+        _Bool, nullable=False, default=False
+    )
+    executor_id: _Map[int] = _column(
+        _Int, _Fk("Actor.id"), nullable=False, index=True
+    )
+    approved: _Map[_dt] = _column(_Dt, index=True)
+    inspector_id: _Map[int] = _column(
+        _Int, _Fk("Actor.id"), nullable=False, index=True
+    )
 
     # relationships
     task_type: _Map["TaskType"] = _rel(back_populates="tasks")
@@ -1624,26 +1767,41 @@ class Task(_Base):
     # methods
     @property
     def is_started_late(self) -> bool:
-        if not self.start_execution:  # pyright: ignore
+        if not self.start_execution:
             return False
         elif (
-            not self.execution_started  # pyright: ignore
-            and self.start_execution <= _dt.utcnow()  # pyright: ignore
+            not self.execution_started and self.start_execution <= _dt.utcnow()
         ):
             return True
         else:
-            return (
-                self.execution_started <= self.start_execution
-            )  # pyright: ignore
+            return self.execution_started <= self.start_execution
 
     @property
     def is_completed_late(self) -> bool:
-        if not self.complete_before:  # pyright: ignore
+        if not self.complete_before:
             return False
-        elif (
-            not self.completed  # pyright: ignore
-            and self.complete_before <= _dt.utcnow()  # pyright: ignore
-        ):  # pyright: ignore
+        elif not self.completed and self.complete_before <= _dt.utcnow():
             return True
         else:
-            return self.complete_before < self.completed  # pyright: ignore
+            return self.complete_before < self.completed
+
+    @property
+    def subtasks_by_priority(self) -> _List[_Tuple["Task"]]:
+        """
+        Returns subtasks as list of bunches.
+
+        Tasks in one bunch must be executed in parallel,
+        and bunches must be executed sequentially
+        """
+
+        subs = sorted(self.subtasks, key=_attr("priority"))
+        result = []
+        level: _List[SubTask] = []
+        for s in subs:
+            if not level or level[-1].priority == s.priority:
+                level.append(s)
+            else:
+                result.append(tuple(level))
+                level = []
+                level.append(s)
+        return result

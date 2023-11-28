@@ -41,3 +41,28 @@ class NoSuchUserError(AuthError):
 class DeletedUserAuthError(AuthError):
 
     """Auth cannot be proceeded: user accounе is marked for deletion"""
+
+
+class VerificationError(Exception):
+
+    """Base class for errors associated with personal data"""
+
+
+class PersonalDataValidationError(VerificationError):
+
+    """Personal data has not passed primary validation"""
+
+
+class EmailValidationError(PersonalDataValidationError):
+
+    """Email has not passed primary validation"""
+
+
+class PhoneValidationError(PersonalDataValidationError):
+
+    """Phone has not passed primary validation"""
+
+
+class TelegramValidationError(PersonalDataValidationError):
+
+    """Telegram has not passed primary validation"""
