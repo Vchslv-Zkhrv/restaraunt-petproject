@@ -1,13 +1,27 @@
+"""
+Module containing (only) sqlalchemy models.
+
+All models are built according to the following template:
+
+0. class Model(_Base):
+1. __tablename__
+2. docstring
+3. __init__ or/and @reconstructor
+4. columns
+5. relationships
+6. __table_args__
+7. validators
+8. properties
+9. methods
+
+To improve readability, the main code blocks starts with corresponding comment.
+"""
+
+
+import operator as _operator
 import re as _re
+import typing as _t
 from datetime import datetime as _dt
-from operator import attrgetter as _attr
-from typing import Dict as _Dict
-from typing import Generator as _Generator
-from typing import List as _List
-from typing import Optional as _Opt
-from typing import Set as _Set
-from typing import Tuple as _Tuple
-from typing import TypeVar as _TypeVar
 
 import passlib.hash as _hash
 from email_validator import EmailNotValidError as _EmailError
@@ -33,7 +47,28 @@ from . import project_types as _types
 from .database import Base as _Base
 
 
-T = _TypeVar("T")
+_T = _t.TypeVar("_T")
+
+
+def _check_float(
+    value: float,
+    value_name: str,
+    criterion: float,
+    comprasion_method: _t.Callable[[float, float], bool],
+):
+    """
+    Raises ValueError if value don't meet criterion
+    """
+    if not comprasion_method(value, criterion):
+        if comprasion_method == _operator.lt:
+            compr = "lower than"
+        if comprasion_method == _operator.gt:
+            compr = "greater than"
+        if comprasion_method == _operator.eq:
+            compr = "equals to"
+        else:
+            raise ValueError("unsupported comprasion method")
+        raise ValueError(f"{value_name} cannot be {compr} {criterion}")
 
 
 class Actor(_Base):
@@ -47,12 +82,14 @@ class Actor(_Base):
     id: _Map[int] = _column(_Int, primary_key=True, index=True)
 
     # relationships
-    created_tasks: _Map[_List["Task"]] = _rel(back_populates="author")
-    tasks_to_execute: _Map[_List["Task"]] = _rel(back_populates="executor")
-    tasks_to_inspect: _Map[_List["Task"]] = _rel(back_populates="inspector")
-    default_actor: _Map[_Opt["DefaultActor"]] = _rel(back_populates="actor")
-    user: _Map[_Opt["User"]] = _rel(back_populates="actor")
-    personal_access_levels: _Map[_List["ActorAccessLevel"]] = _rel(
+    created_tasks: _Map[_t.List["Task"]] = _rel(back_populates="author")
+    tasks_to_execute: _Map[_t.List["Task"]] = _rel(back_populates="executor")
+    tasks_to_inspect: _Map[_t.List["Task"]] = _rel(back_populates="inspector")
+    default_actor: _Map[_t.Optional["DefaultActor"]] = _rel(
+        back_populates="actor"
+    )
+    user: _Map[_t.Optional["User"]] = _rel(back_populates="actor")
+    personal_access_levels: _Map[_t.List["ActorAccessLevel"]] = _rel(
         back_populates="actor"
     )
 
@@ -77,28 +114,28 @@ class Restaurant(_Base):
 
     # relationships
     default_actor: _Map["DefaultActor"] = _rel(back_populates="restaurant")
-    external_departments: _Map[_List["RestaurantExternalDepartment"]] = _rel(
+    external_departments: _Map[_t.List["RestaurantExternalDepartment"]] = _rel(
         back_populates="restaurant"
     )
-    internal_departments: _Map[_List["RestaurantInternalDepartment"]] = _rel(
+    internal_departments: _Map[_t.List["RestaurantInternalDepartment"]] = _rel(
         back_populates="restaraunt"
     )
-    employees: _Map[_List["RestaurantEmployee"]] = _rel(
+    employees: _Map[_t.List["RestaurantEmployee"]] = _rel(
         back_populates="restaurant"
     )
-    stock_balance: _Map[_List["MaterialStockBalance"]] = _rel(
+    stock_balance: _Map[_t.List["MaterialStockBalance"]] = _rel(
         back_populates="restaurant"
     )
-    products: _Map[_List["RestaurantProduct"]] = _rel(
+    products: _Map[_t.List["RestaurantProduct"]] = _rel(
         back_populates="restaurant"
     )
-    customer_orders: _Map[_List["CustomerOrder"]] = _rel(
+    customer_orders: _Map[_t.List["CustomerOrder"]] = _rel(
         back_populates="restaurant"
     )
-    table_locations: _Map[_List["TableLocation"]] = _rel(
+    table_locations: _Map[_t.List["TableLocation"]] = _rel(
         back_populates="restaurant"
     )
-    discounts: _Map[_List["RestaurantDiscount"]] = _rel(
+    discounts: _Map[_t.List["RestaurantDiscount"]] = _rel(
         back_populates="restaurant"
     )
 
@@ -130,7 +167,7 @@ class RestaurantExternalDepartment(_Base):
         back_populates="external_departments"
     )
     working_hours: _Map[
-        _List["RestaurantExternalDepartmentWorkingHours"]
+        _t.List["RestaurantExternalDepartmentWorkingHours"]
     ] = _rel(back_populates="department")
     default_actor: _Map["DefaultActor"] = _rel(
         back_populates="restaurant_external_department"
@@ -140,16 +177,18 @@ class RestaurantExternalDepartment(_Base):
     @property
     def working_hours_tuple(
         self,
-    ) -> _Tuple[_types.schemas.WeekdayWorkingHours]:
+    ) -> _t.Tuple[_types.schemas.WeekdayWorkingHours]:
         return tuple(
             _types.schemas.WeekdayWorkingHours.model_validate(h)
-            for h in sorted(self.working_hours, key=_attr("weekday"))
+            for h in sorted(
+                self.working_hours, key=_operator.attrgetter("weekday")
+            )
         )  # pyright: ignore
 
     @property
     def working_hours_dict(
         self,
-    ) -> _Dict[_types.enums.Weekday, _types.schemas.WeekdayWorkingHours]:
+    ) -> _t.Dict[_types.enums.Weekday, _types.schemas.WeekdayWorkingHours]:
         return {
             k: v
             for k, v in (
@@ -207,7 +246,7 @@ class RestaurantInternalDepartment(_Base):
     default_actor: _Map["DefaultActor"] = _rel(
         back_populates="restaurant_internal_department"
     )
-    sub_departments: _Map[_List["RestaurantInternalSubDepartment"]] = _rel(
+    sub_departments: _Map[_t.List["RestaurantInternalSubDepartment"]] = _rel(
         back_populates="parent"
     )
     parent_department: _Map["RestaurantInternalSubDepartment"] = _rel(
@@ -310,8 +349,8 @@ class DefaultActorTaskDelegation(_Base):
 
     # methods
     def get_attachments(
-        self, attachments_type: T
-    ) -> _Generator[T, None, None]:
+        self, attachments_type: _T
+    ) -> _t.Generator[_T, None, None]:
         # I'm not found any other ways to save type hinting
         if attachments_type is not self.attachment_type:
             raise TypeError("wrong attachments type")
@@ -322,13 +361,13 @@ class DefaultActorTaskDelegation(_Base):
             {},
             {"self": self},
         )
-        _check_type(attachments, _Generator[T, None, None])
+        _check_type(attachments, _t.Generator[_T, None, None])
         return attachments
 
     # validators
     @_validates("source")
-    def _validate_source(self, _, source: str):
-        if not source.startswith("self."):
+    def _validate_source(self, _, source_: str):
+        if not source_.startswith("self."):
             raise ValueError("Illegal source")
 
     @_validates("attachments_type_name")
@@ -353,15 +392,17 @@ class DefaultActor(_Base):
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="default_actor")
-    task_delegations: _Map[_List["DefaultActorTaskDelegation"]] = _rel(
+    task_delegations: _Map[_t.List["DefaultActorTaskDelegation"]] = _rel(
         back_populates="default_actor"
     )
-    restaurant: _Map[_Opt["Restaurant"]] = _rel(back_populates="default_actor")
+    restaurant: _Map[_t.Optional["Restaurant"]] = _rel(
+        back_populates="default_actor"
+    )
     restaurant_external_department: _Map[
-        _Opt["RestaurantExternalDepartment"]
+        _t.Optional["RestaurantExternalDepartment"]
     ] = _rel(back_populates="default_actor")
     restaurant_internal_department: _Map[
-        _Opt["RestaurantInternalDepartment"]
+        _t.Optional["RestaurantInternalDepartment"]
     ] = _rel(back_populates="default_actor")
 
 
@@ -378,17 +419,17 @@ class TaskType(_Base):
 
     # relationships
     restaurant_employee_position_access_levels: _Map[
-        _List["RestaurantEmployeePositionAccessLevel"]
+        _t.List["RestaurantEmployeePositionAccessLevel"]
     ] = _rel(back_populates="task_type")
-    personal_access_levels: _Map[_List["ActorAccessLevel"]] = _rel(
+    personal_access_levels: _Map[_t.List["ActorAccessLevel"]] = _rel(
         back_populates="task_type"
     )
-    groups: _Map[_List["TaskTypeGroupTask"]] = _rel(back_populates="type")
+    groups: _Map[_t.List["TaskTypeGroupTask"]] = _rel(back_populates="type")
     incoming_in_task_delegations: _Map[
-        _List["DefaultActorTaskDelegation"]
+        _t.List["DefaultActorTaskDelegation"]
     ] = _rel(back_populates="incoming_task_type")
     outcoming_in_task_delegations: _Map[
-        _List["DefaultActorTaskDelegation"]
+        _t.List["DefaultActorTaskDelegation"]
     ] = _rel(back_populates="outcoming_task_type")
 
 
@@ -400,7 +441,7 @@ class TaskTypeGroup(_Base):
     name: _Map[str] = _column(_Str, unique=True, index=True, nullable=False)
 
     # relationships
-    types: _Map[_List["TaskTypeGroupTask"]] = _rel(back_populates="group")
+    types: _Map[_t.List["TaskTypeGroupTask"]] = _rel(back_populates="group")
 
 
 class TaskTypeGroupTask(_Base):
@@ -462,29 +503,67 @@ class TaskTarget(_Base):
 
     # relationships
     task: _Map["Task"] = _rel(back_populates="target")
-    types: _Map[_List["TaskTargetTypeTarget"]] = _rel(back_populates="target")
-    supply: _Map[_Opt["Supply"]] = _rel(back_populates="task_target")
-    salary: _Map[_Opt["Salary"]] = _rel(back_populates="task_target")
-    writeoff: _Map[_Opt["WriteOff"]] = _rel(back_populates="task_target")
-    customer_order: _Map[_Opt["CustomerOrder"]] = _rel(
+    types: _Map[_t.List["TaskTargetTypeTarget"]] = _rel(
+        back_populates="target"
+    )
+    supply: _Map[_t.Optional["Supply"]] = _rel(back_populates="task_target")
+    salary: _Map[_t.Optional["Salary"]] = _rel(back_populates="task_target")
+    writeoff: _Map[_t.Optional["WriteOff"]] = _rel(
         back_populates="task_target"
     )
-    customer_payment: _Map[_Opt["CustomerPayment"]] = _rel(
+    customer_order: _Map[_t.Optional["CustomerOrder"]] = _rel(
         back_populates="task_target"
     )
-    supply_order: _Map[_Opt["SupplyOrder"]] = _rel(
+    customer_payment: _Map[_t.Optional["CustomerPayment"]] = _rel(
         back_populates="task_target"
     )
-    supply_payment: _Map[_Opt["SupplyPayment"]] = _rel(
+    supply_order: _Map[_t.Optional["SupplyOrder"]] = _rel(
         back_populates="task_target"
     )
-    defining_access_level: _Map[_Opt["ActorAccessLevel"]] = _rel(
+    supply_payment: _Map[_t.Optional["SupplyPayment"]] = _rel(
         back_populates="task_target"
     )
-    discount_group: _Map[_Opt["DiscountGroup"]] = _rel(
+    defining_access_level: _Map[_t.Optional["ActorAccessLevel"]] = _rel(
         back_populates="task_target"
     )
-    dicsount: _Map[_Opt["Discount"]] = _rel(back_populates="task_target")
+    discount_group: _Map[_t.Optional["DiscountGroup"]] = _rel(
+        back_populates="task_target"
+    )
+    dicsount: _Map[_t.Optional["Discount"]] = _rel(
+        back_populates="task_target"
+    )
+
+    # properties
+    @property
+    def model(
+        self,
+    ) -> _t.Optional[
+        _t.Union[
+            "Supply",
+            "Salary",
+            "WriteOff",
+            "CustomerOrder",
+            "SupplyOrder",
+            "SupplyPayment",
+            "ActorAccessLevel",
+            "DiscountGroup",
+            "Discount",
+        ]
+    ]:
+        for rel in (
+            "supply",
+            "salary",
+            "writeoff",
+            "customer_order",
+            "supply_order",
+            "supply_payment",
+            "defining_access_level",
+            "discount_group",
+            "discount",
+        ):
+            model = self.__getattribute__(rel)
+            if model:
+                return model
 
 
 class TaskTargetType(_Base):
@@ -495,7 +574,9 @@ class TaskTargetType(_Base):
     name: _Map[str] = _column(_Str, nullable=False, unique=True, index=True)
 
     # relationships
-    targets: _Map[_List["TaskTargetTypeTarget"]] = _rel(back_populates="type")
+    targets: _Map[_t.List["TaskTargetTypeTarget"]] = _rel(
+        back_populates="type"
+    )
 
 
 class TaskTargetTypeTarget(_Base):
@@ -526,7 +607,7 @@ class SubTask(_Base):
     priority: _Map[int] = _column(_Int, nullable=False, default=0)
 
     # relationships
-    subtasks: _Map[_List["Task"]] = _rel(back_populates="parent")
+    subtasks: _Map[_t.List["Task"]] = _rel(back_populates="parent")
     parent: _Map["Task"] = _rel(back_populates="subtasks")
 
     # composite primary key
@@ -563,11 +644,11 @@ class User(_Base):
 
     # relationships
     actor: _Map["Actor"] = _rel(back_populates="user")
-    restaurant_employee: _Map[_Opt["RestaurantEmployee"]] = _rel(
+    restaurant_employee: _Map[_t.Optional["RestaurantEmployee"]] = _rel(
         back_populates="user"
     )
-    customer: _Map[_Opt["Customer"]] = _rel(back_populates="user")
-    verifications: _Map[_List["Verification"]] = _rel(back_populates="user")
+    customer: _Map[_t.Optional["Customer"]] = _rel(back_populates="user")
+    verifications: _Map[_t.List["Verification"]] = _rel(back_populates="user")
 
     # methods
     def verify_password(self, password: str) -> bool:
@@ -590,7 +671,7 @@ class User(_Base):
 
     # properties
     @property
-    def verificated_fields(self) -> _Set[_types.enums.VerificationFieldName]:
+    def verificated_fields(self) -> _t.Set[_types.enums.VerificationFieldName]:
         names = set(e for e in _types.enums.VerificationFieldName)
         return names - set(v.field_name for v in self.verifications)
 
@@ -632,12 +713,22 @@ class RestaurantEmployeePosition(_Base):
     )
 
     # relationships
-    employees: _Map[_List["RestaurantEmployee"]] = _rel(
+    employees: _Map[_t.List["RestaurantEmployee"]] = _rel(
         back_populates="position"
     )
-    access_levels: _Map[_List["RestaurantEmployeePositionAccessLevel"]] = _rel(
-        back_populates="position"
-    )
+    access_levels: _Map[
+        _t.List["RestaurantEmployeePositionAccessLevel"]
+    ] = _rel(back_populates="position")
+
+    # validators
+    @_validates("expierence_coefficient")
+    def _validate_expierence_coefficient(self, k: str, v: float):
+        _check_float(v, k, 1, _operator.lt)
+        _check_float(v, k, _cfg.MAX_EXPIERENCE_COEFFICIENT, _operator.gt)
+
+    @_validates("salary")
+    def _validate_salary(self, k: str, v: float):
+        _check_float(v, k, 0, _operator.lt)
 
 
 class RestaurantEmployeePositionAccessLevel(_Base):
@@ -695,7 +786,7 @@ class RestaurantEmployee(_Base):
     position: _Map["RestaurantEmployeePosition"] = _rel(
         back_populates="employees"
     )
-    salaries: _Map[_List["Salary"]] = _rel(
+    salaries: _Map[_t.List["Salary"]] = _rel(
         back_populates="restaurant_employee"
     )
     restaurant: _Map["Restaurant"] = _rel(back_populates="employees")
@@ -713,12 +804,17 @@ class Customer(_Base):
 
     # relationships
     user: _Map["User"] = _rel(back_populates="customer")
-    favorites: _Map[_List["CustomerFavoriteProduct"]] = _rel(
+    favorites: _Map[_t.List["CustomerFavoriteProduct"]] = _rel(
         back_populates="customer"
     )
-    shopping_cart_products: _Map[_List["CustomerFavoriteProduct"]] = _rel(
+    shopping_cart_products: _Map[_t.List["CustomerFavoriteProduct"]] = _rel(
         back_populates="customer"
     )
+
+    # validators
+    @_validates("bonuts_points")
+    def _validate_bonus_points(self, k: str, v: float):
+        _check_float(v, k, 0, _operator.lt)
 
 
 class Material(_Base):
@@ -747,15 +843,20 @@ class Material(_Base):
     # relationships
     item: _Map["Item"] = _rel(back_populates="material")
     group: _Map["MaterialGroup"] = _rel(back_populates="materials")
-    ingridients: _Map[_List["IngridientMaterial"]] = _rel(
+    ingridients: _Map[_t.List["IngridientMaterial"]] = _rel(
         back_populates="material"
     )
-    allergic_flags: _Map[_List["MaterialAllergicFlag"]] = _rel(
+    allergic_flags: _Map[_t.List["MaterialAllergicFlag"]] = _rel(
         back_populates="material"
     )
-    stock_balance: _Map[_List["MaterialStockBalance"]] = _rel(
+    stock_balance: _Map[_t.List["MaterialStockBalance"]] = _rel(
         back_populates="material"
     )
+
+    # validators
+    @_validates("price")
+    def _validate_price(self, k: str, v: float):
+        _check_float(v, k, 0, _operator.lt)
 
 
 class MaterialStockBalance(_Base):
@@ -786,8 +887,12 @@ class MaterialGroup(_Base):
     name: _Map[str] = _column(_Str, nullable=False, unique=True, index=True)
 
     # relationships
-    parent_group: _Map[_Opt["MaterialSubGroup"]] = _rel(back_populates="child")
-    subgroups: _Map[_List["MaterialSubGroup"]] = _rel(back_populates="parent")
+    parent_group: _Map[_t.Optional["MaterialSubGroup"]] = _rel(
+        back_populates="child"
+    )
+    subgroups: _Map[_t.List["MaterialSubGroup"]] = _rel(
+        back_populates="parent"
+    )
 
 
 class MaterialSubGroup(_Base):
@@ -823,7 +928,7 @@ class Supply(_Base):
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="supply")
-    items: _Map[_List["SupplyItem"]] = _rel(back_populates="supply")
+    items: _Map[_t.List["SupplyItem"]] = _rel(back_populates="supply")
     payment: _Map["SupplyPayment"] = _rel(back_populates="supply")
 
 
@@ -861,15 +966,20 @@ class Ingridient(_Base):
     created: _Map[_dt] = _column(_Dt, nullable=False)
 
     # relationships
-    materials: _Map[_List["IngridientMaterial"]] = _rel(
+    materials: _Map[_t.List["IngridientMaterial"]] = _rel(
         back_populates="ingridient"
     )
-    products: _Map[_List["ProductIngridient"]] = _rel(
+    products: _Map[_t.List["ProductIngridient"]] = _rel(
         back_populates="ingridient"
     )
     available_to_add_in_products: _Map[
-        _List["ProductAvailableExtraIngridient"]
+        _t.List["ProductAvailableExtraIngridient"]
     ] = _rel(back_populates="ingridient")
+
+    # properties
+    @property
+    def nutritional_values(self) -> _types.schemas.NutritionalValues:
+        return _types.schemas.NutritionalValues.model_validate(self)
 
 
 class IngridientMaterial(_Base):
@@ -919,36 +1029,49 @@ class Product(_Base):
     tare_id: _Map[int] = _column(_Int, _Fk("Tare.id"), nullable=True)
 
     # relationships
-    ingridients: _Map[_List["ProductIngridient"]] = _rel(
+    ingridients: _Map[_t.List["ProductIngridient"]] = _rel(
         back_populates="product"
     )
     customers_who_added_to_favorites: _Map[
-        _List["CustomerFavoriteProduct"]
+        _t.List["CustomerFavoriteProduct"]
     ] = _rel(back_populates="product")
     customers_who_added_to_shopping_cart: _Map[
-        _List["CustomerShoppingCartProduct"]
+        _t.List["CustomerShoppingCartProduct"]
     ] = _rel(back_populates="product")
-    customer_orders: _Map[_List["CustomerOrderProduct"]] = _rel(
+    customer_orders: _Map[_t.List["CustomerOrderProduct"]] = _rel(
         back_populates="product"
     )
     available_extra_ingridients: _Map[
-        _List["ProductAvailableExtraIngridient"]
+        _t.List["ProductAvailableExtraIngridient"]
     ] = _rel(back_populates="product")
     category: _Map["ProductCategoryProduct"] = _rel(back_populates="product")
-    discounts: _Map[_List["DiscountOptionProduct"]] = _rel(
+    discounts: _Map[_t.List["DiscountOptionProduct"]] = _rel(
         back_populates="product"
     )
-    tare: _Map[_Opt["Tare"]] = _rel(back_populates="products")
-    restaurants: _Map[_List["RestaurantProduct"]] = _rel(
+    tare: _Map[_t.Optional["Tare"]] = _rel(back_populates="products")
+    restaurants: _Map[_t.List["RestaurantProduct"]] = _rel(
         back_populates="product"
     )
+
+    # properties
+    @property
+    def nutritianal_values(self) -> _types.schemas.NutritionalValues:
+        values = _types.schemas.NutritionalValues(
+            calories=0, fats=0, proteins=0, carbohydrates=0
+        )
+        for i in self.ingridients:
+            values += i.ingridient.nutritional_values * i.ip_ratio
+        return values
 
 
 class RestaurantProduct(_Base):
     __tablename__ = "RestaurantProduct"
 
     """
-    Product selling in a restaurant
+    Product selling in a restaurant.
+
+    To get suspend period, look for the Task with name
+    'RestarauntProduct#<id> suspend'
     """
 
     product_id: _Map[int] = _column(_Int, _Fk("Product.id"), primary_key=True)
@@ -988,6 +1111,11 @@ class ProductIngridient(_Base):
 
     # composite primary key
     __table_args__ = (_PKConstraint(ingridient_id, product_id), {})
+
+    # validators
+    @_validates("ip_ratio")
+    def _validate_ip_ratio(self, k: str, v: float):
+        _check_float(v, k, 0, _operator.lt)
 
 
 class CustomerFavoriteProduct(_Base):
@@ -1056,13 +1184,13 @@ class CustomerOrder(_Base):
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="customer_order")
-    products: _Map[_List["CustomerOrderProduct"]] = _rel(
+    products: _Map[_t.List["CustomerOrderProduct"]] = _rel(
         back_populates="customer_order"
     )
-    online_order: _Map[_Opt["OnlineOrder"]] = _rel(
+    online_order: _Map[_t.Optional["OnlineOrder"]] = _rel(
         back_populates="customer_order"
     )
-    waiter_order: _Map[_Opt["WaiterOrder"]] = _rel(
+    waiter_order: _Map[_t.Optional["WaiterOrder"]] = _rel(
         back_populates="customer_order"
     )
     payment: _Map["CustomerPayment"] = _rel(back_populates="order")
@@ -1091,7 +1219,7 @@ class CustomerOrderProduct(_Base):
     # relationships
     customer_order: _Map["CustomerOrder"] = _rel(back_populates="products")
     product: _Map["Product"] = _rel(back_populates="customer_orders")
-    discount_option: _Map[_Opt["DiscountOption"]] = _rel(
+    discount_option: _Map[_t.Optional["DiscountOption"]] = _rel(
         back_populates="order_products"
     )
 
@@ -1211,7 +1339,7 @@ class Table(_Base):
 
     # relationships
     location: _Map["TableLocation"] = _rel(back_populates="tables")
-    waiter_orders: _Map[_List["WaiterOrder"]] = _rel(back_populates="table")
+    waiter_orders: _Map[_t.List["WaiterOrder"]] = _rel(back_populates="table")
 
 
 class TableLocation(_Base):
@@ -1229,7 +1357,7 @@ class TableLocation(_Base):
     )
 
     # relationships
-    tables: _Map[_List["Table"]] = _rel(back_populates="location")
+    tables: _Map[_t.List["Table"]] = _rel(back_populates="location")
     restaurant: _Map["Restaurant"] = _rel(back_populates="table_locations")
 
 
@@ -1280,7 +1408,7 @@ class AllergicFlag(_Base):
     name: _Map[str] = _column(_Str, unique=True, index=True, nullable=False)
 
     # relationships
-    materials: _Map[_List["MaterialAllergicFlag"]] = _rel(
+    materials: _Map[_t.List["MaterialAllergicFlag"]] = _rel(
         back_populates="allergic_flag"
     )
 
@@ -1320,7 +1448,7 @@ class ProductCategory(_Base):
     name: _Map[str] = _column(_Str, unique=True, index=True, nullable=False)
 
     # relationships
-    products: _Map[_List["ProductCategoryProduct"]] = _rel(
+    products: _Map[_t.List["ProductCategoryProduct"]] = _rel(
         back_populates="product_category"
     )
 
@@ -1375,7 +1503,7 @@ class DiscountGroup(_Base):
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="discount_group")
-    discounts: _Map[_List["Discount"]] = _rel(back_populates="group")
+    discounts: _Map[_t.List["Discount"]] = _rel(back_populates="group")
 
 
 class Discount(_Base):
@@ -1410,8 +1538,8 @@ class Discount(_Base):
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="discount")
     group: _Map["DiscountGroup"] = _rel(back_populates="discounts")
-    options: _Map[_List["DiscountOption"]] = _rel(back_populates="discount")
-    restaurants: _Map[_List["RestaurantDiscount"]] = _rel(
+    options: _Map[_t.List["DiscountOption"]] = _rel(back_populates="discount")
+    restaurants: _Map[_t.List["RestaurantDiscount"]] = _rel(
         back_populates="discount"
     )
 
@@ -1511,7 +1639,7 @@ class SupplyOrder(_Base):
 
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="supply_order")
-    items: _Map[_List["SupplyOrderItem"]] = _rel(
+    items: _Map[_t.List["SupplyOrderItem"]] = _rel(
         back_populates="kitchen_order"
     )
 
@@ -1551,7 +1679,7 @@ class WriteOffReason(_Base):
 
     # relationships
     group: _Map["WriteOffReasonGroup"] = _rel(back_populates="reasons")
-    writeoffs: _Map[_List["WriteOff"]] = _rel(back_populates="reason")
+    writeoffs: _Map[_t.List["WriteOff"]] = _rel(back_populates="reason")
 
 
 class WriteOffReasonGroup(_Base):
@@ -1563,7 +1691,7 @@ class WriteOffReasonGroup(_Base):
     description: _Map[str] = _column(_Str, nullable=False, default="")
 
     # relationships
-    reasons: _Map[_List["WriteOffReason"]] = _rel(back_populates="group")
+    reasons: _Map[_t.List["WriteOffReason"]] = _rel(back_populates="group")
 
 
 class WriteOff(_Base):
@@ -1581,7 +1709,7 @@ class WriteOff(_Base):
     # relationships
     task_target: _Map["TaskTarget"] = _rel(back_populates="writeoff")
     reason: _Map["WriteOffReason"] = _rel(back_populates="writeoffs")
-    items: _Map[_List["WriteOffItem"]] = _rel(back_populates="writeoff")
+    items: _Map[_t.List["WriteOffItem"]] = _rel(back_populates="writeoff")
 
 
 class WriteOffItem(_Base):
@@ -1637,7 +1765,7 @@ class Tare(_Base):
 
     # relationships
     item: _Map["Item"] = _rel(back_populates="tare")
-    products: _Map[_List["Product"]] = _rel(back_populates="tare")
+    products: _Map[_t.List["Product"]] = _rel(back_populates="tare")
 
 
 class Inventory(_Base):
@@ -1671,9 +1799,11 @@ class InventoryGroup(_Base):
     name: _Map[str] = _column(_Str, nullable=False, unique=True)
 
     # relationships
-    inventory: _Map[_List["Inventory"]] = _rel(back_populates="group")
-    subgroups: _Map[_List["InventorySubGroup"]] = _rel(back_populates="parent")
-    parent_group: _Map[_Opt["InventorySubGroup"]] = _rel(
+    inventory: _Map[_t.List["Inventory"]] = _rel(back_populates="group")
+    subgroups: _Map[_t.List["InventorySubGroup"]] = _rel(
+        back_populates="parent"
+    )
+    parent_group: _Map[_t.Optional["InventorySubGroup"]] = _rel(
         back_populates="child"
     )
 
@@ -1708,11 +1838,11 @@ class Item(_Base):
     id: _Map[int] = _column(_Int, primary_key=True, index=True)
 
     # relationships
-    material: _Map[_Opt["Material"]] = _rel(back_populates="item")
-    tare: _Map[_Opt["Tare"]] = _rel(back_populates="item")
-    inventory: _Map[_Opt["Inventory"]] = _rel(back_populates="item")
-    writeoffs: _Map[_List["WriteOffItem"]] = _rel(back_populates="item")
-    supply_orders: _Map[_List["SupplyOrder"]] = _rel(back_populates="item")
+    material: _Map[_t.Optional["Material"]] = _rel(back_populates="item")
+    tare: _Map[_t.Optional["Tare"]] = _rel(back_populates="item")
+    inventory: _Map[_t.Optional["Inventory"]] = _rel(back_populates="item")
+    writeoffs: _Map[_t.List["WriteOffItem"]] = _rel(back_populates="item")
+    supply_orders: _Map[_t.List["SupplyOrder"]] = _rel(back_populates="item")
 
 
 class Task(_Base):
@@ -1761,8 +1891,8 @@ class Task(_Base):
     author: _Map["Actor"] = _rel(back_populates="created_tasks")
     executor: _Map["Actor"] = _rel(back_populates="tasks_to_execute")
     inspector: _Map["Actor"] = _rel(back_populates="tasks_to_inspect")
-    parent: _Map[_Opt["SubTask"]] = _rel(back_populates="subtasks")
-    subtasks: _Map[_List["SubTask"]] = _rel(back_populates="parent")
+    parent: _Map[_t.Optional["SubTask"]] = _rel(back_populates="subtasks")
+    subtasks: _Map[_t.List["SubTask"]] = _rel(back_populates="parent")
 
     # methods
     @property
@@ -1786,17 +1916,16 @@ class Task(_Base):
             return self.complete_before < self.completed
 
     @property
-    def subtasks_by_priority(self) -> _List[_Tuple["Task"]]:
+    def subtasks_by_priority(self) -> _t.List[_t.Tuple["Task"]]:
         """
         Returns subtasks as list of bunches.
 
         Tasks in one bunch must be executed in parallel,
         and bunches must be executed sequentially
         """
-
-        subs = sorted(self.subtasks, key=_attr("priority"))
+        subs = sorted(self.subtasks, key=_operator.attrgetter("priority"))
         result = []
-        level: _List[SubTask] = []
+        level: _t.List[SubTask] = []
         for s in subs:
             if not level or level[-1].priority == s.priority:
                 level.append(s)

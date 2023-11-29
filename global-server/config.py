@@ -4,6 +4,7 @@ from pydantic import Field as _Field
 
 
 PHONE_VALIDATION_REGEX = r"9\d\d\d\d\d\d\d\d\d"
+MAX_EXPIERENCE_COEFFICIENT = 1.5
 
 
 class Environment(_BM):
