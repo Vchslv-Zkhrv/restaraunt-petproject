@@ -1,8 +1,8 @@
-"""re-init after error
+"""restored after enums error
 
-Revision ID: d1ad78fb1101
+Revision ID: d95d8ac27ee9
 Revises: 
-Create Date: 2023-11-27 16:23:56.873319
+Create Date: 2023-11-30 17:38:39.451881
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "d1ad78fb1101"
+revision: str = "d95d8ac27ee9"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
