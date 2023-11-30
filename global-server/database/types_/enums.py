@@ -74,3 +74,9 @@ class UserRole(_Enum):
     restaurant_employee = "restaurant_employee"
     managment_employee = "managment_employee"
     admin = "admin"
+
+
+class ItemType(_Enum):
+    tare = "tare"
+    material = "material"
+    inventory = "inventory"

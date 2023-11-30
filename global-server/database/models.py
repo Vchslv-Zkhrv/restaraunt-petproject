@@ -23,6 +23,7 @@ import re as _re
 import typing as _t
 from datetime import datetime as _dt
 
+import config as _cfg
 import passlib.hash as _hash
 from email_validator import EmailNotValidError as _EmailError
 from email_validator import validate_email as _validate_email
@@ -42,8 +43,7 @@ from sqlalchemy.orm import validates as _validates
 from sqlalchemy.schema import PrimaryKeyConstraint as _PKConstraint
 from typeguard import check_type as _check_type
 
-from . import config as _cfg
-from . import project_types as _types
+from . import types_ as _types
 from .database import Base as _Base
 
 
@@ -62,9 +62,9 @@ def _check_float(
     if not comprasion_method(value, criterion):
         if comprasion_method == _operator.lt:
             compr = "lower than"
-        if comprasion_method == _operator.gt:
+        elif comprasion_method == _operator.gt:
             compr = "greater than"
-        if comprasion_method == _operator.eq:
+        elif comprasion_method == _operator.eq:
             compr = "equals to"
         else:
             raise ValueError("unsupported comprasion method")
@@ -817,7 +817,7 @@ class Customer(_Base):
         _check_float(v, k, 0, _operator.lt)
 
 
-class Material(_Base):
+class Material(_Base, _types.abstracts.ItemImplementation):
     __tablename__ = "Material"
 
     """
@@ -916,8 +916,6 @@ class MaterialSubGroup(_Base):
 
 class Supply(_Base):
     __tablename__ = "Supply"
-
-    # columns
     id: _Map[int] = _column(_Int, primary_key=True, index=True)
     restaurant_id: _Map[int] = _column(
         _Int, _Fk("Restaurant.id"), nullable=False, index=True
@@ -1624,7 +1622,7 @@ class DiscountOptionProduct(_Base):
     product: _Map["Product"] = _rel(back_populates="discounts")
 
 
-class SupplyOrder(_Base):
+class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
     __tablename__ = "SupplyOrder"
 
     """
@@ -1644,7 +1642,7 @@ class SupplyOrder(_Base):
     )
 
 
-class SupplyOrderItem(_Base):
+class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
     __tablename__ = "SupplyOrderItem"
 
     # columns
@@ -1660,6 +1658,10 @@ class SupplyOrderItem(_Base):
 
     # composite primary key
     __table_args__ = (_PKConstraint(supply_order_id, item_id), {})
+
+    @property
+    def _collection(self):
+        return self.supply_order
 
 
 class WriteOffReason(_Base):
@@ -1694,7 +1696,7 @@ class WriteOffReasonGroup(_Base):
     reasons: _Map[_t.List["WriteOffReason"]] = _rel(back_populates="group")
 
 
-class WriteOff(_Base):
+class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
     __tablename__ = "WriteOff"
 
     # columns
@@ -1712,7 +1714,7 @@ class WriteOff(_Base):
     items: _Map[_t.List["WriteOffItem"]] = _rel(back_populates="writeoff")
 
 
-class WriteOffItem(_Base):
+class WriteOffItem(_Base, _types.abstracts.ItemImplementationRelation):
     __tablename__ = "WriteOffItem"
 
     # columns
@@ -1728,6 +1730,10 @@ class WriteOffItem(_Base):
 
     # composite primary key
     __table_args__ = (_PKConstraint(writeoff_id, item_id), {})
+
+    @property
+    def _collection(self):
+        return self.writeoff
 
 
 class SupplyPayment(_Base):
@@ -1747,7 +1753,7 @@ class SupplyPayment(_Base):
     supply: _Map["Supply"] = _rel(back_populates="payment")
 
 
-class Tare(_Base):
+class Tare(_Base, _types.abstracts.ItemImplementation):
     __tablename__ = "Tare"
 
     """
@@ -1762,13 +1768,28 @@ class Tare(_Base):
     name: _Map[str] = _column(_Str, nullable=False)
     price: _Map[float] = _column(_Float, nullable=True)
     stock_balance: _Map[int] = _column(_Int, nullable=True)
+    group_id: _Map[int] = _column(
+        _Int, _Fk("TareGroup.id"), nullable=False, index=True
+    )
 
     # relationships
     item: _Map["Item"] = _rel(back_populates="tare")
     products: _Map[_t.List["Product"]] = _rel(back_populates="tare")
+    group: _Map["TareGroup"] = _rel(back_populates="tare")
 
 
-class Inventory(_Base):
+class TareGroup(_Base):
+    __tablename__ = "TareGroup"
+
+    # columns
+    id: _Map[int] = _column(_Int, primary_key=True, index=True)
+    name: _Map[str] = _column(_Str, unique=True, nullable=False, index=True)
+
+    # relationships
+    tare: _Map[_t.List["Tare"]] = _rel(back_populates="group")
+
+
+class Inventory(_Base, _types.abstracts.ItemImplementation):
     __tablename__ = "Inventory"
 
     """
@@ -1827,7 +1848,7 @@ class InventorySubGroup(_Base):
     __table_args__ = (_PKConstraint(parent_id, child_id), {})
 
 
-class Item(_Base):
+class Item(_Base, _types.abstracts.Item):
     __tablename__ = "Item"
 
     """
@@ -1842,7 +1863,9 @@ class Item(_Base):
     tare: _Map[_t.Optional["Tare"]] = _rel(back_populates="item")
     inventory: _Map[_t.Optional["Inventory"]] = _rel(back_populates="item")
     writeoffs: _Map[_t.List["WriteOffItem"]] = _rel(back_populates="item")
-    supply_orders: _Map[_t.List["SupplyOrder"]] = _rel(back_populates="item")
+    supply_orders: _Map[_t.List["SupplyOrderItem"]] = _rel(
+        back_populates="item"
+    )
 
 
 class Task(_Base):

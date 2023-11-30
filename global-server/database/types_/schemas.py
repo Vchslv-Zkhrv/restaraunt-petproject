@@ -1,6 +1,7 @@
 from datetime import time as _time
 
 from pydantic import BaseModel as _Base
+from pydantic import Field as _Field
 
 
 class _Schema(_Base):
@@ -21,10 +22,10 @@ class NutritionalValues(_Schema):
     Can be multiplied by float and increased by NutrinionalValues
     """
 
-    calories: float
-    proteins: float
-    fats: float
-    carbohydrates: float
+    calories: float = _Field(ge=0)
+    proteins: float = _Field(ge=0)
+    fats: float = _Field(ge=0)
+    carbohydrates: float = _Field(ge=0)
 
     def __mul__(self, other: float) -> "NutritionalValues":
         return NutritionalValues(
@@ -40,4 +41,12 @@ class NutritionalValues(_Schema):
             proteins=self.proteins + other.proteins,
             fats=self.fats + other.fats,
             carbohydrates=self.carbohydrates + other.carbohydrates,
+        )
+
+    def __sub__(self, other: "NutritionalValues") -> "NutritionalValues":
+        return NutritionalValues(
+            calories=self.calories - other.calories,
+            proteins=self.proteins - other.proteins,
+            fats=self.fats - other.fats,
+            carbohydrates=self.carbohydrates - other.carbohydrates,
         )
