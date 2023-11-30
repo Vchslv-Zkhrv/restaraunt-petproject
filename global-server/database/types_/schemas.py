@@ -18,8 +18,8 @@ class WeekdayWorkingHours(_Schema):
 class NutritionalValues(_Schema):
 
     """
-    Has __mul__ and __add__ mehtods.
-    Can be multiplied by float and increased by NutrinionalValues
+    Has __mul__, __add__, __sub__ mehtods.
+    Can be multiplied by float and increased / decreased by NutrinionalValues
     """
 
     calories: float = _Field(ge=0)

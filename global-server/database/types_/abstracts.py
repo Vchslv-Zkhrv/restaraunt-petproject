@@ -1,3 +1,10 @@
+"""
+Abstract classes for sqlalchemy models.
+
+(Classes are not inherited from abc.ABC because of metaclass conflict)
+"""
+
+
 import abc as _abc
 import typing as _t
 

@@ -1,6 +1,9 @@
 """
 Module containing (only) sqlalchemy models.
 
+This module must not be used to interact with database outside database
+package.
+
 All models are built according to the following template:
 
 0. class Model(_Base):
@@ -22,6 +25,7 @@ import operator as _operator
 import re as _re
 import typing as _t
 from datetime import datetime as _dt
+from datetime import time as _time
 
 import config as _cfg
 import passlib.hash as _hash
@@ -212,8 +216,8 @@ class RestaurantExternalDepartmentWorkingHours(_Base):
     weekday: _Map[_types.enums.Weekday] = _column(
         _Enum(_types.enums.Weekday), primary_key=True
     )
-    start: _Map[_dt] = _column(_Time, nullable=False, index=True)
-    finish: _Map[_dt] = _column(_Time, nullable=False, index=True)
+    start: _Map[_time] = _column(_Time, nullable=False, index=True)
+    finish: _Map[_time] = _column(_Time, nullable=False, index=True)
 
     # relationships
     department: _Map["RestaurantExternalDepartment"] = _rel(
@@ -979,6 +983,16 @@ class Ingridient(_Base):
     def nutritional_values(self) -> _types.schemas.NutritionalValues:
         return _types.schemas.NutritionalValues.model_validate(self)
 
+    @property
+    def allergic_flags(self) -> _t.Set[str]:
+        # todo: check efficiency
+        # may cause unnecessary calls to the database
+        flags = set()
+        for m in self.materials:
+            for f in m.material.allergic_flags:
+                flags.add(f.allergic_flag.name)
+        return flags
+
 
 class IngridientMaterial(_Base):
     __tablename__ = "IngridientMaterial"
@@ -1060,6 +1074,15 @@ class Product(_Base):
         for i in self.ingridients:
             values += i.ingridient.nutritional_values * i.ip_ratio
         return values
+
+    @property
+    def allergic_flags(self) -> _t.Set[str]:
+        # todo: check efficiency
+        # may cause unnecessary calls to the database
+        flags = set()
+        for i in self.ingridients:
+            flags = flags.union(i.ingridient.allergic_flags)
+        return flags
 
 
 class RestaurantProduct(_Base):
@@ -1220,6 +1243,51 @@ class CustomerOrderProduct(_Base):
     discount_option: _Map[_t.Optional["DiscountOption"]] = _rel(
         back_populates="order_products"
     )
+    changed_ingridients: _Map[
+        _t.List["CustomerOrderProductIngridientChange"]
+    ] = _rel(back_populates="product")
+
+    # properties
+    @property
+    def allergic_flags(self) -> _t.Set[str]:
+        """Set of all allergic flags excluding removed ingridients"""
+
+        # todo: check efficiency
+        # may cause unnecessary calls to the database
+        flags = set()
+        removed = tuple(i.ingridient.id for i in self.changed_ingridients)
+        for i in self.product.ingridients:
+            if i.ingridient.id in removed:
+                continue
+            flags = flags.union(i.ingridient.allergic_flags)
+        return flags
+
+    @property
+    def nutritional_values(self) -> _types.schemas.NutritionalValues:
+        """Total nutritional values after changing ingridients"""
+
+        # todo: check efficiency
+        # may cause unnecessary calls to the database
+
+        values = self.product.nutritianal_values
+        # NutritionalValue fields cannot be lower than 0
+        values.calories += sum(
+            i.ingridient.nutritional_values.calories
+            for i in self.changed_ingridients
+        )
+        values.fats += sum(
+            i.ingridient.nutritional_values.fats
+            for i in self.changed_ingridients
+        )
+        values.proteins += sum(
+            i.ingridient.nutritional_values.proteins
+            for i in self.changed_ingridients
+        )
+        values.carbohydrates += sum(
+            i.ingridient.nutritional_values.carbohydrates
+            for i in self.changed_ingridients
+        )
+        return values
 
 
 class OnlineOrder(_Base):
@@ -1874,6 +1942,8 @@ class Task(_Base):
     """
     The main object required to perform financially responsible tasks
     """
+
+    # todo: __init__ with AccessLevels checking
 
     # columns
     id: _Map[int] = _column(_Int, primary_key=True, index=True)

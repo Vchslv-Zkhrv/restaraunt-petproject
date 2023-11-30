@@ -1,5 +1,7 @@
 """
-Database CRUDS endpoints
+Database CRUDS endpoints.
+
+All interaction with database must be procceeded here (not in models.py)
 """
 
 
