@@ -4,7 +4,7 @@ import typing as _t
 from . import enums as _enums
 
 
-class Item(_abc.ABC):
+class Item:
 
     """Abstract class for base Item model"""
 
@@ -30,7 +30,7 @@ class Item(_abc.ABC):
         return self._impl_and_type[1]
 
 
-class ItemImplementation(_abc.ABC):
+class ItemImplementation:
 
     """Implementation of Item model"""
 
@@ -42,7 +42,7 @@ class ItemImplementation(_abc.ABC):
     group: "ItemImplementationGroup"
 
 
-class ItemImplementationGroup(_abc.ABC):
+class ItemImplementationGroup:
 
     """Group of ItemImplementation of one type"""
 
@@ -52,7 +52,7 @@ class ItemImplementationGroup(_abc.ABC):
     items: _t.List[ItemImplementation]
 
 
-class ItemImplementationCollection(_abc.ABC):
+class ItemImplementationCollection:
 
     """Collection of ItemImplementation of different types"""
 
@@ -62,7 +62,7 @@ class ItemImplementationCollection(_abc.ABC):
     items: _t.List["ItemImplementationRelation"]
 
 
-class ItemImplementationRelation(_abc.ABC):
+class ItemImplementationRelation:
 
     """ItemImplementation in AbstractItemCollection"""
 
