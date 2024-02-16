@@ -1079,9 +1079,8 @@ class Customer(_Base):
     __tablename__ = "Customer"
 
     # columns
-    id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
-        _sql.Identity(),
+    id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         primary_key=True,
         index=True
     )
@@ -1648,8 +1647,8 @@ class CustomerFavoriteProduct(_Base):
     """
 
     # columns
-    customer_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
+    customer_id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         _sql.ForeignKey("Customer.id"),
         primary_key=True
     )
@@ -1682,8 +1681,8 @@ class CustomerShoppingCartProduct(_Base):
     """
 
     # columns
-    customer_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
+    customer_id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         _sql.ForeignKey("Customer.id"),
         primary_key=True
     )
