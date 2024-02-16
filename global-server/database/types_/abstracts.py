@@ -20,8 +20,9 @@ class Item:
     id: _orm.Mapped[int]
 
     @property
-    def _impl_and_type(self,) -> _t.Tuple["ItemImplementation", _enums.ItemType]:
-
+    def _impl_and_type(
+        self,
+    ) -> _t.Tuple["ItemImplementation", _enums.ItemType]:
         for t in _enums.ItemType:
             impl = self.__getattribute__(t.value)
             if impl:

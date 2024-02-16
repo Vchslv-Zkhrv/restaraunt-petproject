@@ -15,6 +15,7 @@ from datetime import date as _date
 from datetime import datetime as _dt
 from datetime import time as _time
 
+import config as _cfg
 import passlib.hash as _hash
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
@@ -23,7 +24,6 @@ from email_validator import EmailNotValidError as _EmailError
 from email_validator import validate_email as _validate_email
 from typeguard import check_type as _check_type
 
-from .. import config as _cfg
 from . import types_ as _types
 from .database import Base as _Base
 
@@ -58,6 +58,7 @@ class Actor(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -93,6 +94,7 @@ class Restaurant(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -162,6 +164,7 @@ class RestaurantExternalDepartment(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -259,6 +262,7 @@ class RestaurantInternalDepartment(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -459,6 +463,7 @@ class DefaultActor(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -503,6 +508,7 @@ class TaskType(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -530,6 +536,7 @@ class TaskTypeGroup(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -589,6 +596,7 @@ class ActorAccessLevel(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True
     )
     actor_id: _orm.Mapped[int] = _orm.mapped_column(
@@ -637,6 +645,7 @@ class TaskTarget(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -686,6 +695,7 @@ class TaskTargetType(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -773,6 +783,7 @@ class User(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -924,6 +935,7 @@ class RestaurantEmployeePosition(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1010,6 +1022,7 @@ class RestaurantEmployee(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1066,6 +1079,7 @@ class Customer(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1108,6 +1122,7 @@ class Material(_Base, _types.abstracts.ItemImplementation):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1207,6 +1222,7 @@ class MaterialGroup(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1259,6 +1275,7 @@ class Supply(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1332,6 +1349,7 @@ class Ingridient(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1436,6 +1454,7 @@ class Product(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1706,6 +1725,7 @@ class CustomerOrder(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1754,6 +1774,7 @@ class CustomerOrderProduct(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1843,6 +1864,7 @@ class OnlineOrder(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -1997,6 +2019,7 @@ class Table(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2031,6 +2054,7 @@ class TableLocation(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2062,6 +2086,7 @@ class WaiterOrder(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2093,6 +2118,7 @@ class Salary(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2133,6 +2159,7 @@ class AllergicFlag(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2190,6 +2217,7 @@ class ProductCategory(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2242,6 +2270,7 @@ class CustomerPayment(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2279,6 +2308,7 @@ class DiscountGroup(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2313,6 +2343,7 @@ class Discount(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2452,6 +2483,7 @@ class DiscountOption(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2513,6 +2545,7 @@ class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2585,6 +2618,7 @@ class WriteOffReason(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2618,6 +2652,7 @@ class WriteOffReasonGroup(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2645,6 +2680,7 @@ class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2715,6 +2751,7 @@ class SupplyPayment(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2752,6 +2789,7 @@ class Tare(_Base, _types.abstracts.ItemImplementation):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2799,6 +2837,7 @@ class TareGroup(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2825,6 +2864,7 @@ class Inventory(_Base, _types.abstracts.ItemImplementation):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2861,6 +2901,7 @@ class InventoryGroup(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2919,6 +2960,7 @@ class Item(_Base, _types.abstracts.Item):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
@@ -2952,6 +2994,7 @@ class Task(_Base):
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
+        _sql.Identity(),
         primary_key=True,
         index=True
     )
