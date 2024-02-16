@@ -1,23 +1,10 @@
+# file is ignored by the Black formatter but still meets the flake8 rules
+# it was made to improve readability
+
+
 """
 Module containing (only) sqlalchemy models.
 
-This module must not be used to interact with database outside database
-package.
-
-All models are built according to the following template:
-
-0. class Model(_Base):
-1. __tablename__
-2. docstring
-3. __init__ or/and @reconstructor
-4. columns
-5. relationships
-6. __table_args__
-7. validators
-8. properties
-9. methods
-
-To improve readability, the main code blocks starts with corresponding comment.
 """
 
 
@@ -45,9 +32,7 @@ _T = _t.TypeVar("_T")
 _comprasion = _t.Literal["eq", "ne", "gt", "ge", "lt", "le"]
 
 
-def _check_value(
-    value: object, value_name: str, criterion: object, comprasion: _comprasion
-):
+def _check_value(value: object, value_name: str, criterion: object, comprasion: _comprasion):
     """
     Raises ValueError if value don't meet criterion
     """
@@ -57,7 +42,7 @@ def _check_value(
         "lt": (_operator.lt, "lower than"),
         "le": (_operator.le, "lower than or equals to"),
         "gt": (_operator.gt, "greater than"),
-        "ge": (_operator.ge, "greater than or equals than"),
+        "ge": (_operator.ge, "greater than or equals to"),
     }[comprasion]
     if not method(value, criterion):
         raise ValueError(f"{value_name} must be {compr} {criterion}")
@@ -72,28 +57,30 @@ class Actor(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
 
     # relationships
-    created_tasks: _orm.Mapped[_t.List["Task"]] = _orm.relationship(
-        back_populates="author"
-    )
-    tasks_to_execute: _orm.Mapped[_t.List["Task"]] = _orm.relationship(
-        back_populates="executor"
-    )
-    tasks_to_inspect: _orm.Mapped[_t.List["Task"]] = _orm.relationship(
-        back_populates="inspector"
-    )
+
+    created_tasks: _orm.Mapped[
+        _t.List["Task"]] = _orm.relationship(back_populates="author")
+
+    tasks_to_execute: _orm.Mapped[
+        _t.List["Task"]] = _orm.relationship(back_populates="executor")
+
+    tasks_to_inspect: _orm.Mapped[
+        _t.List["Task"]] = _orm.relationship(back_populates="inspector")
+
     default_actor: _orm.Mapped[
-        _t.Optional["DefaultActor"]
-    ] = _orm.relationship(back_populates="actor")
-    user: _orm.Mapped[_t.Optional["User"]] = _orm.relationship(
-        back_populates="actor"
-    )
+        _t.Optional["DefaultActor"]] = _orm.relationship(back_populates="actor")
+
+    user: _orm.Mapped[
+        _t.Optional["User"]] = _orm.relationship(back_populates="actor")
+
     personal_access_levels: _orm.Mapped[
-        _t.List["ActorAccessLevel"]
-    ] = _orm.relationship(back_populates="actor")
+        _t.List["ActorAccessLevel"]] = _orm.relationship(back_populates="actor")
 
 
 class Restaurant(_Base):
@@ -105,7 +92,9 @@ class Restaurant(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     default_actor_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -115,43 +104,51 @@ class Restaurant(_Base):
         index=True,
     )
     url: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, unique=True, index=True
+        _sql.String,
+        nullable=False,
+        unique=True,
+        index=True
     )
     address: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, unique=True, index=True
+        _sql.String,
+        nullable=False,
+        unique=True,
+        index=True
     )
     accepts_online_orders: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, index=True
+        _sql.Boolean,
+        nullable=False,
+        index=True
     )
 
     # relationships
-    default_actor: _orm.Mapped["DefaultActor"] = _orm.relationship(
-        back_populates="restaurant"
-    )
+
+    default_actor: _orm.Mapped[
+        "DefaultActor"] = _orm.relationship(back_populates="restaurant")
+
     external_departments: _orm.Mapped[
-        _t.List["RestaurantExternalDepartment"]
-    ] = _orm.relationship(back_populates="restaurant")
+        _t.List["RestaurantExternalDepartment"]] = _orm.relationship(back_populates="restaurant")
+
     internal_departments: _orm.Mapped[
-        _t.List["RestaurantInternalDepartment"]
-    ] = _orm.relationship(back_populates="restaraunt")
-    employees: _orm.Mapped[_t.List["RestaurantEmployee"]] = _orm.relationship(
-        back_populates="restaurant"
-    )
+        _t.List["RestaurantInternalDepartment"]] = _orm.relationship(back_populates="restaraunt")
+
+    employees: _orm.Mapped[
+        _t.List["RestaurantEmployee"]] = _orm.relationship(back_populates="restaurant")
+
     stock_balance: _orm.Mapped[
-        _t.List["MaterialStockBalance"]
-    ] = _orm.relationship(back_populates="restaurant")
-    products: _orm.Mapped[_t.List["RestaurantProduct"]] = _orm.relationship(
-        back_populates="restaurant"
-    )
-    customer_orders: _orm.Mapped[_t.List["CustomerOrder"]] = _orm.relationship(
-        back_populates="restaurant"
-    )
-    table_locations: _orm.Mapped[_t.List["TableLocation"]] = _orm.relationship(
-        back_populates="restaurant"
-    )
-    discounts: _orm.Mapped[_t.List["RestaurantDiscount"]] = _orm.relationship(
-        back_populates="restaurant"
-    )
+        _t.List["MaterialStockBalance"]] = _orm.relationship(back_populates="restaurant")
+
+    products: _orm.Mapped[
+        _t.List["RestaurantProduct"]] = _orm.relationship(back_populates="restaurant")
+
+    customer_orders: _orm.Mapped[
+        _t.List["CustomerOrder"]] = _orm.relationship(back_populates="restaurant")
+
+    table_locations: _orm.Mapped[
+        _t.List["TableLocation"]] = _orm.relationship(back_populates="restaurant")
+
+    discounts: _orm.Mapped[
+        _t.List["RestaurantDiscount"]] = _orm.relationship(back_populates="restaurant")
 
 
 class RestaurantExternalDepartment(_Base):
@@ -164,7 +161,9 @@ class RestaurantExternalDepartment(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     default_actor_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -178,48 +177,39 @@ class RestaurantExternalDepartment(_Base):
         index=True,
         nullable=False,
     )
-    type: _orm.Mapped[
-        _types.enums.RestarauntExternalDepartmentType
-    ] = _orm.mapped_column(
+    type: _orm.Mapped[_types.enums.RestarauntExternalDepartmentType] = _orm.mapped_column(
         _sql.Enum(_types.enums.RestarauntExternalDepartmentType),
         nullable=False,
         index=True,
     )
 
     # relationships
-    restaurant: _orm.Mapped["Restaurant"] = _orm.relationship(
-        back_populates="external_departments"
-    )
+
+    restaurant: _orm.Mapped[
+        "Restaurant"] = _orm.relationship(back_populates="external_departments")
+
     working_hours: _orm.Mapped[
-        _t.List["RestaurantExternalDepartmentWorkingHours"]
-    ] = _orm.relationship(back_populates="department")
-    default_actor: _orm.Mapped["DefaultActor"] = _orm.relationship(
-        back_populates="restaurant_external_department"
-    )
+        _t.List["RestaurantExternalDepartmentWorkingHours"]] = _orm.relationship(back_populates="department")
+
+    default_actor: _orm.Mapped[
+        "DefaultActor"] = _orm.relationship(back_populates="restaurant_external_department")
 
     # properties
+
     @property
     def working_hours_tuple(
         self,
     ) -> _t.Tuple[_types.schemas.WeekdayWorkingHours]:
         return tuple(
             _types.schemas.WeekdayWorkingHours.model_validate(h)
-            for h in sorted(
-                self.working_hours, key=_operator.attrgetter("weekday")
-            )
+            for h in sorted(self.working_hours, key=_operator.attrgetter("weekday"))
         )  # pyright: ignore
 
     @property
     def working_hours_dict(
         self,
     ) -> _t.Dict[_types.enums.Weekday, _types.schemas.WeekdayWorkingHours]:
-        return {
-            k: v
-            for k, v in (
-                (_types.enums.Weekday(i), w)
-                for i, w in enumerate(self.working_hours_tuple)
-            )
-        }
+        return {k: v for k, v in ((_types.enums.Weekday(i), w) for i, w in enumerate(self.working_hours_tuple))}
 
 
 class RestaurantExternalDepartmentWorkingHours(_Base):
@@ -236,19 +226,24 @@ class RestaurantExternalDepartmentWorkingHours(_Base):
         primary_key=True,
     )
     weekday: _orm.Mapped[_types.enums.Weekday] = _orm.mapped_column(
-        _sql.Enum(_types.enums.Weekday), primary_key=True
+        _sql.Enum(_types.enums.Weekday),
+        primary_key=True
     )
     start: _orm.Mapped[_time] = _orm.mapped_column(
-        _sql.Time, nullable=False, index=True
+        _sql.Time,
+        nullable=False,
+        index=True
     )
     finish: _orm.Mapped[_time] = _orm.mapped_column(
-        _sql.Time, nullable=False, index=True
+        _sql.Time,
+        nullable=False,
+        index=True
     )
 
     # relationships
+
     department: _orm.Mapped[
-        "RestaurantExternalDepartment"
-    ] = _orm.relationship(back_populates="working_hours")
+        "RestaurantExternalDepartment"] = _orm.relationship(back_populates="working_hours")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(department_id, weekday), {})
@@ -263,10 +258,14 @@ class RestaurantInternalDepartment(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, index=True
+        _sql.String,
+        nullable=False,
+        index=True
     )
     default_actor_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -281,22 +280,24 @@ class RestaurantInternalDepartment(_Base):
         nullable=False,
     )
     type: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, index=True
+        _sql.String,
+        nullable=False,
+        index=True
     )
 
     # relationships
-    restaurant: _orm.Mapped["Restaurant"] = _orm.relationship(
-        back_populates="internal_departments"
-    )
-    default_actor: _orm.Mapped["DefaultActor"] = _orm.relationship(
-        back_populates="restaurant_internal_department"
-    )
+
+    restaurant: _orm.Mapped[
+        "Restaurant"] = _orm.relationship(back_populates="internal_departments")
+
+    default_actor: _orm.Mapped[
+        "DefaultActor"] = _orm.relationship(back_populates="restaurant_internal_department")
+
     sub_departments: _orm.Mapped[
-        _t.List["RestaurantInternalSubDepartment"]
-    ] = _orm.relationship(back_populates="parent")
+        _t.List["RestaurantInternalSubDepartment"]] = _orm.relationship(back_populates="parent")
+
     parent_department: _orm.Mapped[
-        "RestaurantInternalSubDepartment"
-    ] = _orm.relationship(back_populates="child")
+        "RestaurantInternalSubDepartment"] = _orm.relationship(back_populates="child")
 
 
 class RestaurantInternalSubDepartment(_Base):
@@ -319,12 +320,12 @@ class RestaurantInternalSubDepartment(_Base):
     )
 
     # relationships
-    parent: _orm.Mapped["RestaurantInternalDepartment"] = _orm.relationship(
-        back_populates="sub_departments"
-    )
-    child: _orm.Mapped["RestaurantInternalDepartment"] = _orm.relationship(
-        back_populates="parent_department"
-    )
+
+    parent: _orm.Mapped[
+        "RestaurantInternalDepartment"] = _orm.relationship(back_populates="sub_departments")
+
+    child: _orm.Mapped[
+        "RestaurantInternalDepartment"] = _orm.relationship(back_populates="parent_department")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(child_id, parent_id), {})
@@ -350,64 +351,80 @@ class DefaultActorTaskDelegation(_Base):
 
     # columns
     default_actor_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("DefaultActor.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("DefaultActor.id"),
+        primary_key=True
     )
     incoming_task_type_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("TaskType.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("TaskType.id"),
+        primary_key=True
     )
     outcoming_task_type_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("TaskType.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("TaskType.id"),
+        primary_key=True
     )
 
     # columns with python code that
     # must be used to collect delegation attachments
-    source: _orm.Mapped[str] = _orm.mapped_column(_sql.String, nullable=False)
+    source: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String,
+        nullable=False
+    )
     filter_: _orm.Mapped[_t.Optional[str]] = _orm.mapped_column(
-        _sql.String, nullable=True
+        _sql.String,
+        nullable=True
     )
     attachments_type_name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False
+        _sql.String,
+        nullable=False
     )
 
     # columns for Task creation
     task_name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False
+        _sql.String,
+        nullable=False
     )
-    task_comment: _orm.Mapped[str] = _orm.mapped_column(_sql.String)
+    task_comment: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String
+    )
     task_start_execution: _orm.Mapped[_dt] = _orm.mapped_column(
-        _sql.DateTime, index=True
+        _sql.DateTime,
+        index=True
     )
     task_fail_on_late_start: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, default=False
+        _sql.Boolean,
+        nullable=False,
+        default=False
     )
-    task_complete_before: _orm.Mapped[_dt] = _orm.mapped_column(_sql.DateTime)
+    task_complete_before: _orm.Mapped[_dt] = _orm.mapped_column(
+        _sql.DateTime
+    )
     task_fail_on_late_complete: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, default=False
+        _sql.Boolean,
+        nullable=False,
+        default=False
     )
 
     # relationships
-    default_actor: _orm.Mapped["DefaultActor"] = _orm.relationship(
-        back_populates="task_delegations"
-    )
-    incoming_task_type: _orm.Mapped["TaskType"] = _orm.relationship(
-        back_populates="incoming_in_task_delegations"
-    )
-    outcoming_task_type: _orm.Mapped["TaskType"] = _orm.relationship(
-        back_populates="outcoming_in_task_delegations"
-    )
+
+    default_actor: _orm.Mapped[
+        "DefaultActor"] = _orm.relationship(back_populates="task_delegations")
+
+    incoming_task_type: _orm.Mapped[
+        "TaskType"] = _orm.relationship(back_populates="incoming_in_task_delegations")
+
+    outcoming_task_type: _orm.Mapped[
+        "TaskType"] = _orm.relationship(back_populates="outcoming_in_task_delegations")
 
     # composite primary key
     __table_args__ = (
-        _schema.PrimaryKeyConstraint(
-            default_actor_id, incoming_task_type_id, outcoming_task_type_id
-        ),
+        _schema.PrimaryKeyConstraint(default_actor_id, incoming_task_type_id, outcoming_task_type_id),
         {},
     )
 
-    # methods
-    def get_attachments(
-        self, attachments_type: _T
-    ) -> _t.Generator[_T, None, None]:
+    def get_attachments(self, attachments_type: _T) -> _t.Generator[_T, None, None]:
         # I'm not found any other ways to save type hinting
         if attachments_type is not self.attachment_type:
             raise TypeError("wrong attachments type")
@@ -421,7 +438,6 @@ class DefaultActorTaskDelegation(_Base):
         _check_type(attachments, _t.Generator[_T, None, None])
         return attachments
 
-    # validators
     @_orm.validates("source")
     def _validate_source(self, _, source_: str):
         if not source_.startswith("self."):
@@ -442,7 +458,9 @@ class DefaultActor(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     actor_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -452,25 +470,27 @@ class DefaultActor(_Base):
         nullable=False,
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, index=True
+        _sql.String,
+        unique=True,
+        index=True
     )
 
     # relationships
-    actor: _orm.Mapped["Actor"] = _orm.relationship(
-        back_populates="default_actor"
-    )
+
+    actor: _orm.Mapped[
+        "Actor"] = _orm.relationship(back_populates="default_actor")
+
     task_delegations: _orm.Mapped[
-        _t.List["DefaultActorTaskDelegation"]
-    ] = _orm.relationship(back_populates="default_actor")
-    restaurant: _orm.Mapped[_t.Optional["Restaurant"]] = _orm.relationship(
-        back_populates="default_actor"
-    )
+        _t.List["DefaultActorTaskDelegation"]] = _orm.relationship(back_populates="default_actor")
+
+    restaurant: _orm.Mapped[
+        _t.Optional["Restaurant"]] = _orm.relationship(back_populates="default_actor")
+
     restaurant_external_department: _orm.Mapped[
-        _t.Optional["RestaurantExternalDepartment"]
-    ] = _orm.relationship(back_populates="default_actor")
+        _t.Optional["RestaurantExternalDepartment"]] = _orm.relationship(back_populates="default_actor")
+
     restaurant_internal_department: _orm.Mapped[
-        _t.Optional["RestaurantInternalDepartment"]
-    ] = _orm.relationship(back_populates="default_actor")
+        _t.Optional["RestaurantInternalDepartment"]] = _orm.relationship(back_populates="default_actor")
 
 
 class TaskType(_Base):
@@ -482,22 +502,26 @@ class TaskType(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, index=True
+        _sql.String,
+        unique=True,
+        index=True
     )
 
     # relationships
-    groups: _orm.Mapped[_t.List["TaskTypeGroupType"]] = _orm.relationship(
-        back_populates="type"
-    )
+
+    groups: _orm.Mapped[
+        _t.List["TaskTypeGroupType"]] = _orm.relationship(back_populates="type")
+
     incoming_in_task_delegations: _orm.Mapped[
-        _t.List["DefaultActorTaskDelegation"]
-    ] = _orm.relationship(back_populates="incoming_task_type")
+        _t.List["DefaultActorTaskDelegation"]] = _orm.relationship(back_populates="incoming_task_type")
+
     outcoming_in_task_delegations: _orm.Mapped[
-        _t.List["DefaultActorTaskDelegation"]
-    ] = _orm.relationship(back_populates="outcoming_task_type")
+        _t.List["DefaultActorTaskDelegation"]] = _orm.relationship(back_populates="outcoming_task_type")
 
 
 class TaskTypeGroup(_Base):
@@ -505,22 +529,27 @@ class TaskTypeGroup(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, index=True, nullable=False
+        _sql.String,
+        unique=True,
+        index=True,
+        nullable=False
     )
 
     # relationships
-    types: _orm.Mapped[_t.List["TaskTypeGroupType"]] = _orm.relationship(
-        back_populates="group"
-    )
+
+    types: _orm.Mapped[
+        _t.List["TaskTypeGroupType"]] = _orm.relationship(back_populates="group")
+
     restaurant_employee_position_access_levels: _orm.Mapped[
-        _t.List["RestaurantEmployeePositionAccessLevel"]
-    ] = _orm.relationship(back_populates="task_type_group")
+        _t.List["RestaurantEmployeePositionAccessLevel"]] = _orm.relationship(back_populates="task_type_group")
+
     personal_access_levels: _orm.Mapped[
-        _t.List["ActorAccessLevel"]
-    ] = _orm.relationship(back_populates="task_type_group")
+        _t.List["ActorAccessLevel"]] = _orm.relationship(back_populates="task_type_group")
 
 
 class TaskTypeGroupType(_Base):
@@ -528,17 +557,23 @@ class TaskTypeGroupType(_Base):
 
     # columns
     group_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("TaskTypeGroup.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("TaskTypeGroup.id"),
+        primary_key=True
     )
     type_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("TaskType.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("TaskType.id"),
+        primary_key=True
     )
 
     # relationships
-    group: _orm.Mapped["TaskTypeGroup"] = _orm.relationship(
-        back_populates="types"
-    )
-    type: _orm.Mapped["TaskType"] = _orm.relationship(back_populates="groups")
+
+    group: _orm.Mapped[
+        "TaskTypeGroup"] = _orm.relationship(back_populates="types")
+
+    type: _orm.Mapped[
+        "TaskType"] = _orm.relationship(back_populates="groups")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(group_id, type_id), {})
@@ -552,9 +587,15 @@ class ActorAccessLevel(_Base):
     """
 
     # columns
-    id: _orm.Mapped[int] = _orm.mapped_column(_sql.Integer, primary_key=True)
+    id: _orm.Mapped[int] = _orm.mapped_column(
+        _sql.Integer,
+        primary_key=True
+    )
     actor_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Actor.id"), nullable=False, index=True
+        _sql.Integer,
+        _sql.ForeignKey("Actor.id"),
+        nullable=False,
+        index=True
     )
     task_type_group_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -563,22 +604,27 @@ class ActorAccessLevel(_Base):
         index=True,
     )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("TaskTarget.id"), index=True, unique=True
+        _sql.Integer,
+        _sql.ForeignKey("TaskTarget.id"),
+        index=True,
+        unique=True
     )
     role: _orm.Mapped[_types.enums.AccessRole] = _orm.mapped_column(
-        _sql.Enum(_types.enums.AccessRole), nullable=False, index=True
+        _sql.Enum(_types.enums.AccessRole),
+        nullable=False,
+        index=True
     )
 
     # relationships
-    actor: _orm.Mapped["Actor"] = _orm.relationship(
-        back_populates="personal_access_levels"
-    )
-    task_type_group: _orm.Mapped["TaskTypeGroup"] = _orm.relationship(
-        back_populates="personal_access_levels"
-    )
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="defining_access_level"
-    )
+
+    actor: _orm.Mapped[
+        "Actor"] = _orm.relationship(back_populates="personal_access_levels")
+
+    task_type_group: _orm.Mapped[
+        "TaskTypeGroup"] = _orm.relationship(back_populates="personal_access_levels")
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="defining_access_level")
 
 
 class TaskTarget(_Base):
@@ -590,76 +636,48 @@ class TaskTarget(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
 
     # relationships
-    task: _orm.Mapped["Task"] = _orm.relationship(back_populates="target")
-    types: _orm.Mapped[_t.List["TaskTargetTypeTarget"]] = _orm.relationship(
-        back_populates="target"
-    )
-    supply: _orm.Mapped[_t.Optional["Supply"]] = _orm.relationship(
-        back_populates="task_target"
-    )
-    salary: _orm.Mapped[_t.Optional["Salary"]] = _orm.relationship(
-        back_populates="task_target"
-    )
-    writeoff: _orm.Mapped[_t.Optional["WriteOff"]] = _orm.relationship(
-        back_populates="task_target"
-    )
-    customer_order: _orm.Mapped[
-        _t.Optional["CustomerOrder"]
-    ] = _orm.relationship(back_populates="task_target")
-    customer_payment: _orm.Mapped[
-        _t.Optional["CustomerPayment"]
-    ] = _orm.relationship(back_populates="task_target")
-    supply_order: _orm.Mapped[_t.Optional["SupplyOrder"]] = _orm.relationship(
-        back_populates="task_target"
-    )
-    supply_payment: _orm.Mapped[
-        _t.Optional["SupplyPayment"]
-    ] = _orm.relationship(back_populates="task_target")
-    defining_access_level: _orm.Mapped[
-        _t.Optional["ActorAccessLevel"]
-    ] = _orm.relationship(back_populates="task_target")
-    discount_group: _orm.Mapped[
-        _t.Optional["DiscountGroup"]
-    ] = _orm.relationship(back_populates="task_target")
-    dicsount: _orm.Mapped[_t.Optional["Discount"]] = _orm.relationship(
-        back_populates="task_target"
-    )
 
-    # properties
-    @property
-    def model(
-        self,
-    ) -> _t.Optional[
-        _t.Union[
-            "Supply",
-            "Salary",
-            "WriteOff",
-            "CustomerOrder",
-            "SupplyOrder",
-            "SupplyPayment",
-            "ActorAccessLevel",
-            "DiscountGroup",
-            "Discount",
-        ]
-    ]:
-        for rel in (
-            "supply",
-            "salary",
-            "writeoff",
-            "customer_order",
-            "supply_order",
-            "supply_payment",
-            "defining_access_level",
-            "discount_group",
-            "discount",
-        ):
-            model = self.__getattribute__(rel)
-            if model:
-                return model
+    task: _orm.Mapped[
+        "Task"] = _orm.relationship(back_populates="target")
+
+    types: _orm.Mapped[
+        _t.List["TaskTargetTypeTarget"]] = _orm.relationship(back_populates="target")
+
+    supply: _orm.Mapped[
+        _t.Optional["Supply"]] = _orm.relationship(back_populates="task_target")
+
+    salary: _orm.Mapped[
+        _t.Optional["Salary"]] = _orm.relationship(back_populates="task_target")
+
+    writeoff: _orm.Mapped[
+        _t.Optional["WriteOff"]] = _orm.relationship(back_populates="task_target")
+
+    customer_order: _orm.Mapped[
+        _t.Optional["CustomerOrder"]] = _orm.relationship(back_populates="task_target")
+
+    customer_payment: _orm.Mapped[
+        _t.Optional["CustomerPayment"]] = _orm.relationship(back_populates="task_target")
+
+    supply_order: _orm.Mapped[
+        _t.Optional["SupplyOrder"]] = _orm.relationship(back_populates="task_target")
+
+    supply_payment: _orm.Mapped[
+        _t.Optional["SupplyPayment"]] = _orm.relationship(back_populates="task_target")
+
+    defining_access_level: _orm.Mapped[
+        _t.Optional["ActorAccessLevel"]] = _orm.relationship(back_populates="task_target")
+
+    discount_group: _orm.Mapped[
+        _t.Optional["DiscountGroup"]] = _orm.relationship(back_populates="task_target")
+
+    dicsount: _orm.Mapped[
+        _t.Optional["Discount"]] = _orm.relationship(back_populates="task_target")
 
 
 class TaskTargetType(_Base):
@@ -667,16 +685,21 @@ class TaskTargetType(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, unique=True, index=True
+        _sql.String,
+        nullable=False,
+        unique=True,
+        index=True
     )
 
     # relationships
-    targets: _orm.Mapped[_t.List["TaskTargetTypeTarget"]] = _orm.relationship(
-        back_populates="type"
-    )
+
+    targets: _orm.Mapped[
+        _t.List["TaskTargetTypeTarget"]] = _orm.relationship(back_populates="type")
 
 
 class TaskTargetTypeTarget(_Base):
@@ -684,18 +707,21 @@ class TaskTargetTypeTarget(_Base):
 
     # columns
     type_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("TaskTargetType.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("TaskTargetType.id"),
+        primary_key=True
     )
     target_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("TaskTarget.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("TaskTarget.id"),
+        primary_key=True
     )
 
-    type: _orm.Mapped["TaskTargetType"] = _orm.relationship(
-        back_populates="targets"
-    )
-    target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="types"
-    )
+    type: _orm.Mapped[
+        "TaskTargetType"] = _orm.relationship(back_populates="targets")
+
+    target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="types")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(type_id, target_id), {})
@@ -710,20 +736,28 @@ class SubTask(_Base):
 
     # columns
     child_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Task.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Task.id"),
+        primary_key=True
     )
     parent_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Task.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Task.id"),
+        primary_key=True
     )
     priority: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, nullable=False, default=0
+        _sql.Integer,
+        nullable=False,
+        default=0
     )
 
     # relationships
-    subtasks: _orm.Mapped[_t.List["Task"]] = _orm.relationship(
-        back_populates="parent"
-    )
-    parent: _orm.Mapped["Task"] = _orm.relationship(back_populates="subtasks")
+
+    subtasks: _orm.Mapped[
+        _t.List["Task"]] = _orm.relationship(back_populates="parent")
+
+    parent: _orm.Mapped[
+        "Task"] = _orm.relationship(back_populates="subtasks")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(child_id, parent_id), {})
@@ -738,66 +772,96 @@ class User(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     hashed_password: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False
+        _sql.String,
+        nullable=False
     )
     actor_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Actor.id"), nullable=False, index=True
+        _sql.Integer,
+        _sql.ForeignKey("Actor.id"),
+        nullable=False,
+        index=True
     )
     role: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, index=True
+        _sql.String,
+        nullable=False,
+        index=True
     )
     email: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, index=True, nullable=False
+        _sql.String,
+        unique=True,
+        index=True,
+        nullable=False
     )
     phone: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, unique=True, index=True, nullable=True
+        _sql.Integer,
+        unique=True,
+        index=True,
+        nullable=True
     )
     telegram: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, unique=True, index=True, nullable=True
+        _sql.Integer,
+        unique=True,
+        index=True,
+        nullable=True
     )
     lname: _orm.Mapped[_t.Optional[str]] = _orm.mapped_column(
-        _sql.String, nullable=True
+        _sql.String,
+        nullable=True
     )
-    fname: _orm.Mapped[str] = _orm.mapped_column(_sql.String, nullable=False)
+    fname: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String,
+        nullable=False
+    )
     sname: _orm.Mapped[_t.Optional[str]] = _orm.mapped_column(
-        _sql.String, nullable=True
+        _sql.String,
+        nullable=True
     )
     gender: _orm.Mapped[_t.Optional[bool]] = _orm.mapped_column(
-        _sql.Boolean, nullable=True
+        _sql.Boolean,
+        nullable=True
     )
     address: _orm.Mapped[_t.Optional[str]] = _orm.mapped_column(
-        _sql.String, nullable=True
+        _sql.String,
+        nullable=True
     )
     last_online: _orm.Mapped[_dt] = _orm.mapped_column(
-        _sql.DateTime, nullable=False, default=_dt.utcnow, index=True
+        _sql.DateTime,
+        nullable=False,
+        default=_dt.utcnow,
+        index=True
     )
     created: _orm.Mapped[_dt] = _orm.mapped_column(
-        _sql.DateTime, nullable=False, index=True
+        _sql.DateTime,
+        nullable=False,
+        index=True
     )
     deleted: _orm.Mapped[_t.Optional[_dt]] = _orm.mapped_column(
-        _sql.DateTime, nullable=True
+        _sql.DateTime,
+        nullable=True
     )
 
     # relationships
-    actor: _orm.Mapped["Actor"] = _orm.relationship(back_populates="user")
-    restaurant_employee: _orm.Mapped[
-        _t.Optional["RestaurantEmployee"]
-    ] = _orm.relationship(back_populates="user")
-    customer: _orm.Mapped[_t.Optional["Customer"]] = _orm.relationship(
-        back_populates="user"
-    )
-    verifications: _orm.Mapped[_t.List["Verification"]] = _orm.relationship(
-        back_populates="user"
-    )
 
-    # methods
+    actor: _orm.Mapped[
+        "Actor"] = _orm.relationship(back_populates="user")
+
+    restaurant_employee: _orm.Mapped[
+        _t.Optional["RestaurantEmployee"]] = _orm.relationship(back_populates="user")
+
+    customer: _orm.Mapped[
+        _t.Optional["Customer"]] = _orm.relationship(back_populates="user")
+
+    verifications: _orm.Mapped[
+        _t.List["Verification"]] = _orm.relationship(back_populates="user")
+
     def verify_password(self, password: str) -> bool:
         return _hash.bcrypt.verify(password, self.hashed_password)
 
-    # verificators
     @_orm.validates("email")
     def _validate_email(self, _, email: str):
         try:
@@ -812,7 +876,6 @@ class User(_Base):
 
     # todo: check tg user_id existence
 
-    # properties
     @property
     def verificated_fields(self) -> _t.Set[_types.enums.VerificationFieldName]:
         names = set(e for e in _types.enums.VerificationFieldName)
@@ -828,21 +891,24 @@ class Verification(_Base):
 
     # columns
     user_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("User.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("User.id"),
+        primary_key=True
     )
-    field_name: _orm.Mapped[
-        _types.enums.VerificationFieldName
-    ] = _orm.mapped_column(
-        _sql.Enum(_types.enums.VerificationFieldName), primary_key=True
+    field_name: _orm.Mapped[_types.enums.VerificationFieldName] = _orm.mapped_column(
+        _sql.Enum(_types.enums.VerificationFieldName),
+        primary_key=True
     )
     value: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, unique=True
+        _sql.String,
+        nullable=False,
+        unique=True
     )
 
     # relationships
-    user: _orm.Mapped["User"] = _orm.relationship(
-        back_populates="verifications"
-    )
+
+    user: _orm.Mapped[
+        "User"] = _orm.relationship(back_populates="verifications")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(user_id, field_name), {})
@@ -857,25 +923,34 @@ class RestaurantEmployeePosition(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, nullable=False, index=True
+        _sql.String,
+        unique=True,
+        nullable=False,
+        index=True
     )
-    salary: _orm.Mapped[float] = _orm.mapped_column(_sql.Float, nullable=False)
+    salary: _orm.Mapped[float] = _orm.mapped_column(
+        _sql.Float,
+        nullable=False
+    )
     expierence_coefficient: _orm.Mapped[float] = _orm.mapped_column(
-        _sql.Float, nullable=False, default=1
+        _sql.Float,
+        nullable=False,
+        default=1
     )
 
     # relationships
-    employees: _orm.Mapped[_t.List["RestaurantEmployee"]] = _orm.relationship(
-        back_populates="position"
-    )
-    access_levels: _orm.Mapped[
-        _t.List["RestaurantEmployeePositionAccessLevel"]
-    ] = _orm.relationship(back_populates="position")
 
-    # validators
+    employees: _orm.Mapped[
+        _t.List["RestaurantEmployee"]] = _orm.relationship(back_populates="position")
+
+    access_levels: _orm.Mapped[
+        _t.List["RestaurantEmployeePositionAccessLevel"]] = _orm.relationship(back_populates="position")
+
     @_orm.validates("expierence_coefficient")
     def _validate_expierence_coefficient(self, k: str, v: float):
         _check_value(v, k, 1, "ge")
@@ -900,19 +975,23 @@ class RestaurantEmployeePositionAccessLevel(_Base):
         primary_key=True,
     )
     task_type_group_id = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("TaskTypeGroup.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("TaskTypeGroup.id"),
+        primary_key=True
     )
     role: _orm.Mapped[_types.enums.AccessRole] = _orm.mapped_column(
-        _sql.Enum(_types.enums.AccessRole), nullable=False, index=True
+        _sql.Enum(_types.enums.AccessRole),
+        nullable=False,
+        index=True
     )
 
     # relationships
-    position: _orm.Mapped["RestaurantEmployeePosition"] = _orm.relationship(
-        back_populates="access_levels"
-    )
-    task_type_group: _orm.Mapped["TaskTypeGroup"] = _orm.relationship(
-        back_populates="restaurant_employee_position_access_levels"
-    )
+
+    position: _orm.Mapped[
+        "RestaurantEmployeePosition"] = _orm.relationship(back_populates="access_levels")
+
+    task_type_group: _orm.Mapped[
+        "TaskTypeGroup"] = _orm.relationship(back_populates="restaurant_employee_position_access_levels")
 
     # composite primary key
     __table_args__ = (
@@ -930,19 +1009,28 @@ class RestaurantEmployee(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     user_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("User.id"), nullable=False, unique=True
+        _sql.Integer,
+        _sql.ForeignKey("User.id"),
+        nullable=False,
+        unique=True
     )
     hiring_date: _orm.Mapped[_date] = _orm.mapped_column(
-        _sql.Date, nullable=False
+        _sql.Date,
+        nullable=False
     )
     fired_date: _orm.Mapped[_t.Optional[_date]] = _orm.mapped_column(
-        _sql.Date, nullable=True
+        _sql.Date,
+        nullable=True
     )
     on_shift: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, index=True
+        _sql.Boolean,
+        nullable=False,
+        index=True
     )
     position_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -958,18 +1046,18 @@ class RestaurantEmployee(_Base):
     )
 
     # relationships
-    user: _orm.Mapped["User"] = _orm.relationship(
-        back_populates="restaurant_employee"
-    )
-    position: _orm.Mapped["RestaurantEmployeePosition"] = _orm.relationship(
-        back_populates="employees"
-    )
-    salaries: _orm.Mapped[_t.List["Salary"]] = _orm.relationship(
-        back_populates="restaurant_employee"
-    )
-    restaurant: _orm.Mapped["Restaurant"] = _orm.relationship(
-        back_populates="employees"
-    )
+
+    user: _orm.Mapped[
+        "User"] = _orm.relationship(back_populates="restaurant_employee")
+
+    position: _orm.Mapped[
+        "RestaurantEmployeePosition"] = _orm.relationship(back_populates="employees")
+
+    salaries: _orm.Mapped[
+        _t.List["Salary"]] = _orm.relationship(back_populates="restaurant_employee")
+
+    restaurant: _orm.Mapped[
+        "Restaurant"] = _orm.relationship(back_populates="employees")
 
 
 class Customer(_Base):
@@ -977,7 +1065,9 @@ class Customer(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     user_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -987,19 +1077,22 @@ class Customer(_Base):
         index=True,
     )
     bonus_points: _orm.Mapped[float] = _orm.mapped_column(
-        _sql.Float, nullable=False, default=0
+        _sql.Float,
+        nullable=False,
+        default=0
     )
 
     # relationships
-    user: _orm.Mapped["User"] = _orm.relationship(back_populates="customer")
-    favorites: _orm.Mapped[
-        _t.List["CustomerFavoriteProduct"]
-    ] = _orm.relationship(back_populates="customer")
-    shopping_cart_products: _orm.Mapped[
-        _t.List["CustomerFavoriteProduct"]
-    ] = _orm.relationship(back_populates="customer")
 
-    # validators
+    user: _orm.Mapped[
+        "User"] = _orm.relationship(back_populates="customer")
+
+    favorites: _orm.Mapped[
+        _t.List["CustomerFavoriteProduct"]] = _orm.relationship(back_populates="customer")
+
+    shopping_cart_products: _orm.Mapped[
+        _t.List["CustomerFavoriteProduct"]] = _orm.relationship(back_populates="customer")
+
     @_orm.validates("bonuts_points")
     def _validate_bonus_points(self, k: str, v: float):
         _check_value(v, k, 0, "ge")
@@ -1014,7 +1107,9 @@ class Material(_Base, _types.abstracts.ItemImplementation):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     item_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1024,38 +1119,50 @@ class Material(_Base, _types.abstracts.ItemImplementation):
         index=True,
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, nullable=False, index=True
+        _sql.String,
+        unique=True,
+        nullable=False,
+        index=True
     )
     unit: _orm.Mapped[_types.enums.ItemUnit] = _orm.mapped_column(
-        _sql.Enum(_types.enums.ItemUnit), nullable=False
+        _sql.Enum(_types.enums.ItemUnit),
+        nullable=False
     )
-    price: _orm.Mapped[float] = _orm.mapped_column(_sql.Float, nullable=False)
+    price: _orm.Mapped[float] = _orm.mapped_column(
+        _sql.Float,
+        nullable=False
+    )
     best_before: _orm.Mapped[_t.Optional[_dt]] = _orm.mapped_column(
-        _sql.DateTime, nullable=False
+        _sql.DateTime,
+        nullable=False
     )
     group_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("MaterialGroup.id"), nullable=False
+        _sql.Integer,
+        _sql.ForeignKey("MaterialGroup.id"),
+        nullable=False
     )
     created: _orm.Mapped[_dt] = _orm.mapped_column(
-        _sql.DateTime, nullable=False, index=True
+        _sql.DateTime,
+        nullable=False,
+        index=True
     )
 
     # relationships
-    item: _orm.Mapped["Item"] = _orm.relationship(back_populates="material")
-    group: _orm.Mapped["MaterialGroup"] = _orm.relationship(
-        back_populates="materials"
-    )
-    ingridients: _orm.Mapped[
-        _t.List["IngridientMaterial"]
-    ] = _orm.relationship(back_populates="material")
-    allergic_flags: _orm.Mapped[
-        _t.List["MaterialAllergicFlag"]
-    ] = _orm.relationship(back_populates="material")
-    stock_balance: _orm.Mapped[
-        _t.List["MaterialStockBalance"]
-    ] = _orm.relationship(back_populates="material")
+    item: _orm.Mapped[
+        "Item"] = _orm.relationship(back_populates="material")
 
-    # validators
+    group: _orm.Mapped[
+        "MaterialGroup"] = _orm.relationship(back_populates="materials")
+
+    ingridients: _orm.Mapped[
+        _t.List["IngridientMaterial"]] = _orm.relationship(back_populates="material")
+
+    allergic_flags: _orm.Mapped[
+        _t.List["MaterialAllergicFlag"]] = _orm.relationship(back_populates="material")
+
+    stock_balance: _orm.Mapped[
+        _t.List["MaterialStockBalance"]] = _orm.relationship(back_populates="material")
+
     @_orm.validates("price")
     def _validate_price(self, k: str, v: float):
         _check_value(v, k, 0, "gt")
@@ -1066,22 +1173,26 @@ class MaterialStockBalance(_Base):
 
     # columns
     material_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Material.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Material.id"),
+        primary_key=True
     )
     restaurant_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Restaurant.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Restaurant.id"),
+        primary_key=True
     )
     balance: _orm.Mapped[_t.Optional[float]] = _orm.mapped_column(
-        _sql.Float, nullable=True
+        _sql.Float,
+        nullable=True
     )
 
     # relationships
-    material: _orm.Mapped["Material"] = _orm.relationship(
-        back_populates="stock_balance"
-    )
-    restaurant: _orm.Mapped["Restaurant"] = _orm.relationship(
-        back_populates="stock_balance"
-    )
+    material: _orm.Mapped[
+        "Material"] = _orm.relationship(back_populates="stock_balance")
+
+    restaurant: _orm.Mapped[
+        "Restaurant"] = _orm.relationship(back_populates="stock_balance")
 
     # composite primary key
     __table_args__ = (
@@ -1095,19 +1206,24 @@ class MaterialGroup(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, unique=True, index=True
+        _sql.String,
+        nullable=False,
+        unique=True,
+        index=True
     )
 
     # relationships
+
     parent_group: _orm.Mapped[
-        _t.Optional["MaterialSubGroup"]
-    ] = _orm.relationship(back_populates="child")
-    subgroups: _orm.Mapped[_t.List["MaterialSubGroup"]] = _orm.relationship(
-        back_populates="parent"
-    )
+        _t.Optional["MaterialSubGroup"]] = _orm.relationship(back_populates="child")
+
+    subgroups: _orm.Mapped[
+        _t.List["MaterialSubGroup"]] = _orm.relationship(back_populates="parent")
 
 
 class MaterialSubGroup(_Base):
@@ -1115,19 +1231,23 @@ class MaterialSubGroup(_Base):
 
     # columns
     parent_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("MaterialGroup.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("MaterialGroup.id"),
+        primary_key=True
     )
     child_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("MaterialGroup.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("MaterialGroup.id"),
+        primary_key=True
     )
 
     # relationships
-    parent: _orm.Mapped["MaterialGroup"] = _orm.relationship(
-        back_populates="subgroups"
-    )
-    child: _orm.Mapped["MaterialGroup"] = _orm.relationship(
-        back_populates="parent_group"
-    )
+
+    parent: _orm.Mapped[
+        "MaterialGroup"] = _orm.relationship(back_populates="subgroups")
+
+    child: _orm.Mapped[
+        "MaterialGroup"] = _orm.relationship(back_populates="parent_group")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(child_id, parent_id), {})
@@ -1138,7 +1258,9 @@ class Supply(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     restaurant_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1154,15 +1276,15 @@ class Supply(_Base):
     )
 
     # relationships
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="supply"
-    )
-    items: _orm.Mapped[_t.List["SupplyItem"]] = _orm.relationship(
-        back_populates="supply"
-    )
-    payment: _orm.Mapped["SupplyPayment"] = _orm.relationship(
-        back_populates="supply"
-    )
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="supply")
+
+    items: _orm.Mapped[
+        _t.List["SupplyItem"]] = _orm.relationship(back_populates="supply")
+
+    payment: _orm.Mapped[
+        "SupplyPayment"] = _orm.relationship(back_populates="supply")
 
 
 class SupplyItem(_Base):
@@ -1170,19 +1292,31 @@ class SupplyItem(_Base):
 
     # columns
     supply_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Supply.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Supply.id"),
+        primary_key=True
     )
     item_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Item.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Item.id"),
+        primary_key=True
     )
-    count: _orm.Mapped[float] = _orm.mapped_column(_sql.Float, nullable=False)
+    count: _orm.Mapped[float] = _orm.mapped_column(
+        _sql.Float,
+        nullable=False
+    )
     price: _orm.Mapped[_t.Optional[float]] = _orm.mapped_column(
-        _sql.Float, nullable=True
+        _sql.Float,
+        nullable=True
     )
 
     # relationships
-    supply: _orm.Mapped["Supply"] = _orm.relationship(back_populates="items")
-    item: _orm.Mapped["Item"] = _orm.relationship(back_populates="supplies")
+
+    supply: _orm.Mapped[
+        "Supply"] = _orm.relationship(back_populates="items")
+
+    item: _orm.Mapped[
+        "Item"] = _orm.relationship(back_populates="supplies")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(supply_id, item_id), {})
@@ -1197,37 +1331,48 @@ class Ingridient(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, nullable=False, index=True
+        _sql.String,
+        unique=True,
+        nullable=False,
+        index=True
     )
     calories: _orm.Mapped[float] = _orm.mapped_column(
-        _sql.Float, nullable=False
+        _sql.Float,
+        nullable=False
     )
-    fats: _orm.Mapped[float] = _orm.mapped_column(_sql.Float, nullable=False)
+    fats: _orm.Mapped[float] = _orm.mapped_column(
+        _sql.Float,
+        nullable=False
+    )
     proteins: _orm.Mapped[float] = _orm.mapped_column(
-        _sql.Float, nullable=False
+        _sql.Float,
+        nullable=False
     )
     carbohidrates: _orm.Mapped[float] = _orm.mapped_column(
-        _sql.Float, nullable=False
+        _sql.Float,
+        nullable=False
     )
     created: _orm.Mapped[_dt] = _orm.mapped_column(
-        _sql.DateTime, nullable=False
+        _sql.DateTime,
+        nullable=False
     )
 
     # relationships
-    materials: _orm.Mapped[_t.List["IngridientMaterial"]] = _orm.relationship(
-        back_populates="ingridient"
-    )
-    products: _orm.Mapped[_t.List["ProductIngridient"]] = _orm.relationship(
-        back_populates="ingridient"
-    )
-    available_to_add_in_products: _orm.Mapped[
-        _t.List["ProductAvailableExtraIngridient"]
-    ] = _orm.relationship(back_populates="ingridient")
 
-    # properties
+    materials: _orm.Mapped[
+        _t.List["IngridientMaterial"]] = _orm.relationship(back_populates="ingridient")
+
+    products: _orm.Mapped[
+        _t.List["ProductIngridient"]] = _orm.relationship(back_populates="ingridient")
+
+    available_to_add_in_products: _orm.Mapped[
+        _t.List["ProductAvailableExtraIngridient"]] = _orm.relationship(back_populates="ingridient")
+
     @property
     def nutritional_values(self) -> _types.schemas.NutritionalValues:
         return _types.schemas.NutritionalValues.model_validate(self)
@@ -1252,22 +1397,27 @@ class IngridientMaterial(_Base):
 
     # columns
     material_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Material.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Material.id"),
+        primary_key=True
     )
     ingridient_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Ingridient.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Ingridient.id"),
+        primary_key=True
     )
     im_ratio: _orm.Mapped[float] = _orm.mapped_column(
-        _sql.Float, nullable=False
+        _sql.Float,
+        nullable=False
     )
 
     # relationships
-    material: _orm.Mapped["Material"] = _orm.relationship(
-        back_populates="ingridients"
-    )
-    ingridient: _orm.Mapped["Ingridient"] = _orm.relationship(
-        back_populates="materials"
-    )
+
+    material: _orm.Mapped[
+        "Material"] = _orm.relationship(back_populates="ingridients")
+
+    ingridient: _orm.Mapped[
+        "Ingridient"] = _orm.relationship(back_populates="materials")
 
     # composite primary key
     __table_args__ = (
@@ -1285,68 +1435,79 @@ class Product(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, unique=True, index=True
+        _sql.String,
+        nullable=False,
+        unique=True,
+        index=True
     )
     price: _orm.Mapped[_t.Optional[float]] = _orm.mapped_column(
-        _sql.Float, nullable=True
+        _sql.Float,
+        nullable=True
     )
-    best_before: _orm.Mapped[_dt] = _orm.mapped_column(_sql.DateTime)
+    best_before: _orm.Mapped[_dt] = _orm.mapped_column(
+        _sql.DateTime
+    )
     status: _orm.Mapped[_types.enums.ProductStatus] = _orm.mapped_column(
-        _sql.Enum(_types.enums.ProductStatus), nullable=False, index=True
+        _sql.Enum(_types.enums.ProductStatus),
+        nullable=False,
+        index=True
     )
     own_production: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False
+        _sql.Boolean,
+        nullable=False
     )
     avaible_in_online_order: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, index=True
+        _sql.Boolean,
+        nullable=False,
+        index=True
     )
     tare_id: _orm.Mapped[_t.Optional[int]] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Tare.id"), nullable=True
+        _sql.Integer,
+        _sql.ForeignKey("Tare.id"),
+        nullable=True
     )
 
     # relationships
-    ingridients: _orm.Mapped[_t.List["ProductIngridient"]] = _orm.relationship(
-        back_populates="product"
-    )
-    customers_who_added_to_favorites: _orm.Mapped[
-        _t.List["CustomerFavoriteProduct"]
-    ] = _orm.relationship(back_populates="product")
-    customers_who_added_to_shopping_cart: _orm.Mapped[
-        _t.List["CustomerShoppingCartProduct"]
-    ] = _orm.relationship(back_populates="product")
-    customer_orders: _orm.Mapped[
-        _t.List["CustomerOrderProduct"]
-    ] = _orm.relationship(back_populates="product")
-    available_extra_ingridients: _orm.Mapped[
-        _t.List["ProductAvailableExtraIngridient"]
-    ] = _orm.relationship(back_populates="product")
-    category: _orm.Mapped["ProductCategoryProduct"] = _orm.relationship(
-        back_populates="product"
-    )
-    discounts: _orm.Mapped[
-        _t.List["DiscountOptionProduct"]
-    ] = _orm.relationship(back_populates="product")
-    tare: _orm.Mapped[_t.Optional["Tare"]] = _orm.relationship(
-        back_populates="products"
-    )
-    restaurants: _orm.Mapped[_t.List["RestaurantProduct"]] = _orm.relationship(
-        back_populates="product"
-    )
 
-    # validators
+    ingridients: _orm.Mapped[
+        _t.List["ProductIngridient"]] = _orm.relationship(back_populates="product")
+
+    customers_who_added_to_favorites: _orm.Mapped[
+        _t.List["CustomerFavoriteProduct"]] = _orm.relationship(back_populates="product")
+
+    customers_who_added_to_shopping_cart: _orm.Mapped[
+        _t.List["CustomerShoppingCartProduct"]] = _orm.relationship(back_populates="product")
+
+    customer_orders: _orm.Mapped[
+        _t.List["CustomerOrderProduct"]] = _orm.relationship(back_populates="product")
+
+    available_extra_ingridients: _orm.Mapped[
+        _t.List["ProductAvailableExtraIngridient"]] = _orm.relationship(back_populates="product")
+
+    category: _orm.Mapped[
+        "ProductCategoryProduct"] = _orm.relationship(back_populates="product")
+
+    discounts: _orm.Mapped[
+        _t.List["DiscountOptionProduct"]] = _orm.relationship(back_populates="product")
+
+    tare: _orm.Mapped[
+        _t.Optional["Tare"]] = _orm.relationship(back_populates="products")
+
+    restaurants: _orm.Mapped[
+        _t.List["RestaurantProduct"]] = _orm.relationship(back_populates="product")
+
     @_orm.validates("price")
     def _validate_price(self, k: _t.Literal["price"], v: float):
         _check_value(v, k, 0, "gt")
 
-    # properties
     @property
     def nutritianal_values(self) -> _types.schemas.NutritionalValues:
-        values = _types.schemas.NutritionalValues(
-            calories=0, fats=0, proteins=0, carbohydrates=0
-        )
+        values = _types.schemas.NutritionalValues(calories=0, fats=0, proteins=0, carbohydrates=0)
         for i in self.ingridients:
             values += i.ingridient.nutritional_values * i.ip_ratio
         return values
@@ -1371,22 +1532,31 @@ class RestaurantProduct(_Base):
     'RestarauntProduct#<id> suspend'
     """
 
+    # columns
     product_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Product.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Product.id"),
+        primary_key=True
     )
     restaurant_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Restaurant.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Restaurant.id"),
+        primary_key=True
     )
     suspended: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, default=False, index=True
+        _sql.Boolean,
+        nullable=False,
+        default=False,
+        index=True
     )
 
-    product: _orm.Mapped["Product"] = _orm.relationship(
-        back_populates="restaurants"
-    )
-    restaurant: _orm.Mapped["Restaurant"] = _orm.relationship(
-        back_populates="products"
-    )
+    # relationships
+
+    product: _orm.Mapped[
+        "Product"] = _orm.relationship(back_populates="restaurants")
+
+    restaurant: _orm.Mapped[
+        "Restaurant"] = _orm.relationship(back_populates="products")
 
     __table_args__ = (
         _schema.PrimaryKeyConstraint(restaurant_id, product_id),
@@ -1403,31 +1573,39 @@ class ProductIngridient(_Base):
 
     # columns
     product_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Product.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Product.id"),
+        primary_key=True
     )
     ingridient_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Ingridient.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Ingridient.id"),
+        primary_key=True
     )
     ip_ratio: _orm.Mapped[float] = _orm.mapped_column(
-        _sql.Float, nullable=False
+        _sql.Float,
+        nullable=False
     )
     editable: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False
+        _sql.Boolean,
+        nullable=False
     )
     edit_price: _orm.Mapped[_t.Optional[float]] = _orm.mapped_column(
-        _sql.Float, nullable=True
+        _sql.Float,
+        nullable=True
     )
     max_change: _orm.Mapped[_t.Optional[float]] = _orm.mapped_column(
-        _sql.Float, nullable=True
+        _sql.Float,
+        nullable=True
     )
 
     # relationships
-    product: _orm.Mapped["Product"] = _orm.relationship(
-        back_populates="ingridients"
-    )
-    ingridient: _orm.Mapped["Ingridient"] = _orm.relationship(
-        back_populates="products"
-    )
+
+    product: _orm.Mapped[
+        "Product"] = _orm.relationship(back_populates="ingridients")
+
+    ingridient: _orm.Mapped[
+        "Ingridient"] = _orm.relationship(back_populates="products")
 
     # composite primary key
     __table_args__ = (
@@ -1450,19 +1628,23 @@ class CustomerFavoriteProduct(_Base):
 
     # columns
     customer_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Customer.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Customer.id"),
+        primary_key=True
     )
     product_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Product.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Product.id"),
+        primary_key=True
     )
 
     # relationships
-    customer: _orm.Mapped["Customer"] = _orm.relationship(
-        back_populates="favorite_products"
-    )
-    product: _orm.Mapped["Product"] = _orm.relationship(
-        back_populates="cusomers_who_added_to_favorites"
-    )
+
+    customer: _orm.Mapped[
+        "Customer"] = _orm.relationship(back_populates="favorite_products")
+
+    product: _orm.Mapped[
+        "Product"] = _orm.relationship(back_populates="cusomers_who_added_to_favorites")
 
     # composite primary key
     __table_args__ = (
@@ -1480,22 +1662,28 @@ class CustomerShoppingCartProduct(_Base):
 
     # columns
     customer_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Customer.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Customer.id"),
+        primary_key=True
     )
     product_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Product.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Product.id"),
+        primary_key=True
     )
     count: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, nullable=False, default=1
+        _sql.Integer,
+        nullable=False,
+        default=1
     )
 
     # relationships
-    customer: _orm.Mapped["Customer"] = _orm.relationship(
-        back_populates="shopping_cart_products"
-    )
-    product: _orm.Mapped["Product"] = _orm.relationship(
-        back_populates="customers_who_added_to_shopping_cart"
-    )
+
+    customer: _orm.Mapped[
+        "Customer"] = _orm.relationship(back_populates="shopping_cart_products")
+
+    product: _orm.Mapped[
+        "Product"] = _orm.relationship(back_populates="customers_who_added_to_shopping_cart")
 
     # composite primary key
     __table_args__ = (
@@ -1503,7 +1691,6 @@ class CustomerShoppingCartProduct(_Base):
         {},
     )
 
-    # validators
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v: int):
         _check_value(v, k, 1, "ge")
@@ -1518,7 +1705,9 @@ class CustomerOrder(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1533,27 +1722,30 @@ class CustomerOrder(_Base):
         nullable=False,
         index=True,
     )
-    status: _orm.Mapped[str] = _orm.mapped_column(_sql.String, nullable=False)
+    status: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String,
+        nullable=False
+    )
 
     # relationships
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="customer_order"
-    )
-    products: _orm.Mapped[_t.List["CustomerOrderProduct"]] = _orm.relationship(
-        back_populates="customer_order"
-    )
-    online_order: _orm.Mapped[_t.Optional["OnlineOrder"]] = _orm.relationship(
-        back_populates="customer_order"
-    )
-    waiter_order: _orm.Mapped[_t.Optional["WaiterOrder"]] = _orm.relationship(
-        back_populates="customer_order"
-    )
-    payment: _orm.Mapped["CustomerPayment"] = _orm.relationship(
-        back_populates="order"
-    )
-    restaurant: _orm.Mapped["Restaurant"] = _orm.relationship(
-        back_populates="customer_orders"
-    )
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="customer_order")
+
+    products: _orm.Mapped[
+        _t.List["CustomerOrderProduct"]] = _orm.relationship(back_populates="customer_order")
+
+    online_order: _orm.Mapped[
+        _t.Optional["OnlineOrder"]] = _orm.relationship(back_populates="customer_order")
+
+    waiter_order: _orm.Mapped[
+        _t.Optional["WaiterOrder"]] = _orm.relationship(back_populates="customer_order")
+
+    payment: _orm.Mapped[
+        "CustomerPayment"] = _orm.relationship(back_populates="order")
+
+    restaurant: _orm.Mapped[
+        "Restaurant"] = _orm.relationship(back_populates="customer_orders")
 
 
 class CustomerOrderProduct(_Base):
@@ -1561,7 +1753,9 @@ class CustomerOrderProduct(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     order_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1570,38 +1764,45 @@ class CustomerOrderProduct(_Base):
         index=True,
     )
     product_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Product.id"), nullable=False, index=True
+        _sql.Integer,
+        _sql.ForeignKey("Product.id"),
+        nullable=False,
+        index=True
     )
     discount_option_id: _orm.Mapped[_t.Optional[int]] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("DiscountOption.id"), nullable=True
+        _sql.Integer,
+        _sql.ForeignKey("DiscountOption.id"),
+        nullable=True
     )
     paid_by_bonus_points: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, default=False
+        _sql.Boolean,
+        nullable=False,
+        default=False
     )
     count: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, nullable=False, default=1
+        _sql.Integer,
+        nullable=False,
+        default=1
     )
 
     # relationships
-    customer_order: _orm.Mapped["CustomerOrder"] = _orm.relationship(
-        back_populates="products"
-    )
-    product: _orm.Mapped["Product"] = _orm.relationship(
-        back_populates="customer_orders"
-    )
-    discount_option: _orm.Mapped[
-        _t.Optional["DiscountOption"]
-    ] = _orm.relationship(back_populates="order_products")
-    changed_ingridients: _orm.Mapped[
-        _t.List["CustomerOrderProductIngridientChange"]
-    ] = _orm.relationship(back_populates="product")
 
-    # validators
+    customer_order: _orm.Mapped[
+        "CustomerOrder"] = _orm.relationship(back_populates="products")
+
+    product: _orm.Mapped[
+        "Product"] = _orm.relationship(back_populates="customer_orders")
+
+    discount_option: _orm.Mapped[
+        _t.Optional["DiscountOption"]] = _orm.relationship(back_populates="order_products")
+
+    changed_ingridients: _orm.Mapped[
+        _t.List["CustomerOrderProductIngridientChange"]] = _orm.relationship(back_populates="product")
+
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v: int):
         _check_value(v, k, 1, "ge")
 
-    # properties
     @property
     def allergic_flags(self) -> _t.Set[str]:
         """Set of all allergic flags excluding removed ingridients"""
@@ -1625,22 +1826,10 @@ class CustomerOrderProduct(_Base):
 
         values = self.product.nutritianal_values
         # NutritionalValue fields cannot be lower than 0
-        values.calories += sum(
-            i.ingridient.nutritional_values.calories
-            for i in self.changed_ingridients
-        )
-        values.fats += sum(
-            i.ingridient.nutritional_values.fats
-            for i in self.changed_ingridients
-        )
-        values.proteins += sum(
-            i.ingridient.nutritional_values.proteins
-            for i in self.changed_ingridients
-        )
-        values.carbohydrates += sum(
-            i.ingridient.nutritional_values.carbohydrates
-            for i in self.changed_ingridients
-        )
+        values.calories += sum(i.ingridient.nutritional_values.calories for i in self.changed_ingridients)
+        values.fats += sum(i.ingridient.nutritional_values.fats for i in self.changed_ingridients)
+        values.proteins += sum(i.ingridient.nutritional_values.proteins for i in self.changed_ingridients)
+        values.carbohydrates += sum(i.ingridient.nutritional_values.carbohydrates for i in self.changed_ingridients)
         return values
 
 
@@ -1653,7 +1842,9 @@ class OnlineOrder(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     order_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1664,9 +1855,9 @@ class OnlineOrder(_Base):
     )
 
     # relationships
-    customer_order: _orm.Mapped["CustomerOrder"] = _orm.relationship(
-        back_populates="online_order"
-    )
+
+    customer_order: _orm.Mapped[
+        "CustomerOrder"] = _orm.relationship(back_populates="online_order")
 
 
 class ProductAvailableExtraIngridient(_Base):
@@ -1678,20 +1869,27 @@ class ProductAvailableExtraIngridient(_Base):
 
     # columns
     product_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Product.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Product.id"),
+        primary_key=True
     )
     ingridient_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Ingridient.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Ingridient.id"),
+        primary_key=True
     )
-    price: _orm.Mapped[float] = _orm.mapped_column(_sql.Float, nullable=False)
+    price: _orm.Mapped[float] = _orm.mapped_column(
+        _sql.Float,
+        nullable=False
+    )
 
     # relationships
-    product: _orm.Mapped["Product"] = _orm.relationship(
-        back_populates="available_extra_ingridients"
-    )
-    ingridient: _orm.Mapped["Ingridient"] = _orm.relationship(
-        back_populates="available_to_add_in_products"
-    )
+
+    product: _orm.Mapped[
+        "Product"] = _orm.relationship(back_populates="available_extra_ingridients")
+
+    ingridient: _orm.Mapped[
+        "Ingridient"] = _orm.relationship(back_populates="available_to_add_in_products")
 
     # composite primary key
     __table_args__ = (
@@ -1699,7 +1897,6 @@ class ProductAvailableExtraIngridient(_Base):
         {},
     )
 
-    # validators
     @_orm.validates("price")
     def _validate_price(self, k: _t.Literal["price"], v: float):
         _check_value(v, k, 0, "ge")
@@ -1719,19 +1916,22 @@ class CustomerOrderProductIngridientChange(_Base):
         primary_key=True,
     )
     ingridient_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Ingridient.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Ingridient.id"),
+        primary_key=True
     )
     ip_ratio_change: _orm.Mapped[float] = _orm.mapped_column(
-        _sql.Float, nullable=False
+        _sql.Float,
+        nullable=False
     )
 
     # relationships
-    order_product: _orm.Mapped["CustomerOrderProduct"] = _orm.relationship(
-        back_populates="changed_ingridients"
-    )
-    ingridient: _orm.Mapped["Ingridient"] = _orm.relationship(
-        back_populates="changed_in_order_products"
-    )
+
+    order_product: _orm.Mapped[
+        "CustomerOrderProduct"] = _orm.relationship(back_populates="changed_ingridients")
+
+    ingridient: _orm.Mapped[
+        "Ingridient"] = _orm.relationship(back_populates="changed_in_order_products")
 
     # composite primary key
     __table_args__ = (
@@ -1739,7 +1939,6 @@ class CustomerOrderProductIngridientChange(_Base):
         {},
     )
 
-    # validators
     @_orm.validates("ip_ratio_change")
     def _validate_iprc(self, k: _t.Literal["ip_ratio_change"], v: float):
         _check_value(v, k, 0, "ge")
@@ -1759,19 +1958,23 @@ class CustomerOrderProductExtraIngridient(_Base):
         primary_key=True,
     )
     ingridient_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Ingridient.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Ingridient.id"),
+        primary_key=True
     )
     count: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, nullable=False, default=1
+        _sql.Integer,
+        nullable=False,
+        default=1
     )
 
     # relationships
-    order_product: _orm.Mapped["CustomerOrderProduct"] = _orm.relationship(
-        back_populates="extra_ingridients"
-    )
-    ingridient: _orm.Mapped["Ingridient"] = _orm.relationship(
-        back_populates="added_to_order_products"
-    )
+
+    order_product: _orm.Mapped[
+        "CustomerOrderProduct"] = _orm.relationship(back_populates="extra_ingridients")
+
+    ingridient: _orm.Mapped[
+        "Ingridient"] = _orm.relationship(back_populates="added_to_order_products")
 
     # composite primary key
     __table_args__ = (
@@ -1779,7 +1982,6 @@ class CustomerOrderProductExtraIngridient(_Base):
         {},
     )
 
-    # vaidators
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v: int):
         _check_value(v, k, 1, "ge")
@@ -1794,10 +1996,14 @@ class Table(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     number: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, nullable=False, index=True
+        _sql.Integer,
+        nullable=False,
+        index=True
     )
     location_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1807,12 +2013,12 @@ class Table(_Base):
     )
 
     # relationships
-    location: _orm.Mapped["TableLocation"] = _orm.relationship(
-        back_populates="tables"
-    )
-    waiter_orders: _orm.Mapped[_t.List["WaiterOrder"]] = _orm.relationship(
-        back_populates="table"
-    )
+
+    location: _orm.Mapped[
+        "TableLocation"] = _orm.relationship(back_populates="tables")
+
+    waiter_orders: _orm.Mapped[
+        _t.List["WaiterOrder"]] = _orm.relationship(back_populates="table")
 
 
 class TableLocation(_Base):
@@ -1824,10 +2030,15 @@ class TableLocation(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, index=True, nullable=False
+        _sql.String,
+        unique=True,
+        index=True,
+        nullable=False
     )
     restaurant_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1837,12 +2048,12 @@ class TableLocation(_Base):
     )
 
     # relationships
-    tables: _orm.Mapped[_t.List["Table"]] = _orm.relationship(
-        back_populates="location"
-    )
-    restaurant: _orm.Mapped["Restaurant"] = _orm.relationship(
-        back_populates="table_locations"
-    )
+
+    tables: _orm.Mapped[
+        _t.List["Table"]] = _orm.relationship(back_populates="location")
+
+    restaurant: _orm.Mapped[
+        "Restaurant"] = _orm.relationship(back_populates="table_locations")
 
 
 class WaiterOrder(_Base):
@@ -1850,10 +2061,14 @@ class WaiterOrder(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     table_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Table.id"), nullable=False
+        _sql.Integer,
+        _sql.ForeignKey("Table.id"),
+        nullable=False
     )
     order_Id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1864,12 +2079,12 @@ class WaiterOrder(_Base):
     )
 
     # relationships
-    table: _orm.Mapped["Table"] = _orm.relationship(
-        back_populates="waiter_orders"
-    )
-    customer_order: _orm.Mapped["CustomerOrder"] = _orm.relationship(
-        back_populates="waiter_order"
-    )
+
+    table: _orm.Mapped[
+        "Table"] = _orm.relationship(back_populates="waiter_orders")
+
+    customer_order: _orm.Mapped[
+        "CustomerOrder"] = _orm.relationship(back_populates="waiter_order")
 
 
 class Salary(_Base):
@@ -1877,7 +2092,9 @@ class Salary(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1893,16 +2110,17 @@ class Salary(_Base):
         index=True,
     )
     bonus: _orm.Mapped[_t.Optional[float]] = _orm.mapped_column(
-        _sql.Float, nullable=True
+        _sql.Float,
+        nullable=True
     )
 
     # relationships
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="salary"
-    )
-    restaurant_employee: _orm.Mapped["RestaurantEmployee"] = _orm.relationship(
-        back_populates="salaries"
-    )
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="salary")
+
+    restaurant_employee: _orm.Mapped[
+        "RestaurantEmployee"] = _orm.relationship(back_populates="salaries")
 
 
 class AllergicFlag(_Base):
@@ -1914,16 +2132,21 @@ class AllergicFlag(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, index=True, nullable=False
+        _sql.String,
+        unique=True,
+        index=True,
+        nullable=False
     )
 
     # relationships
+
     materials: _orm.Mapped[
-        _t.List["MaterialAllergicFlag"]
-    ] = _orm.relationship(back_populates="allergic_flag")
+        _t.List["MaterialAllergicFlag"]] = _orm.relationship(back_populates="allergic_flag")
 
 
 class MaterialAllergicFlag(_Base):
@@ -1935,19 +2158,23 @@ class MaterialAllergicFlag(_Base):
 
     # columns
     material_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Material.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Material.id"),
+        primary_key=True
     )
     flag_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("AllergicFlag.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("AllergicFlag.id"),
+        primary_key=True
     )
 
     # relationships
-    material: _orm.Mapped["Material"] = _orm.relationship(
-        back_populates="allergic_flags"
-    )
-    allergic_flag: _orm.Mapped["AllergicFlag"] = _orm.relationship(
-        back_populates="materials"
-    )
+
+    material: _orm.Mapped[
+        "Material"] = _orm.relationship(back_populates="allergic_flags")
+
+    allergic_flag: _orm.Mapped[
+        "AllergicFlag"] = _orm.relationship(back_populates="materials")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(material_id, flag_id), {})
@@ -1962,16 +2189,21 @@ class ProductCategory(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, index=True, nullable=False
+        _sql.String,
+        unique=True,
+        index=True,
+        nullable=False
     )
 
     # relationships
+
     products: _orm.Mapped[
-        _t.List["ProductCategoryProduct"]
-    ] = _orm.relationship(back_populates="product_category")
+        _t.List["ProductCategoryProduct"]] = _orm.relationship(back_populates="product_category")
 
 
 class ProductCategoryProduct(_Base):
@@ -1979,19 +2211,23 @@ class ProductCategoryProduct(_Base):
 
     # columns
     product_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Product.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Product.id"),
+        primary_key=True
     )
     category_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("ProductCategory.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("ProductCategory.id"),
+        primary_key=True
     )
 
     # relationships
-    product: _orm.Mapped["Product"] = _orm.relationship(
-        back_populates="category"
-    )
-    product_category: _orm.Mapped["ProductCategory"] = _orm.relationship(
-        back_populates="products"
-    )
+
+    product: _orm.Mapped[
+        "Product"] = _orm.relationship(back_populates="category")
+
+    product_category: _orm.Mapped[
+        "ProductCategory"] = _orm.relationship(back_populates="products")
 
     # composite primary key
     __table_args__ = (
@@ -2005,7 +2241,9 @@ class CustomerPayment(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     order_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2023,12 +2261,12 @@ class CustomerPayment(_Base):
     )
 
     # relationships
-    order: _orm.Mapped["CustomerOrder"] = _orm.relationship(
-        back_populates="payment"
-    )
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="customer_payment"
-    )
+
+    order: _orm.Mapped[
+        "CustomerOrder"] = _orm.relationship(back_populates="payment")
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="customer_payment")
 
 
 class DiscountGroup(_Base):
@@ -2040,9 +2278,14 @@ class DiscountGroup(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
-    name: _orm.Mapped[str] = _orm.mapped_column(_sql.String, nullable=False)
+    name: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String,
+        nullable=False
+    )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
         _sql.ForeignKey("TaskTarget.id"),
@@ -2052,12 +2295,12 @@ class DiscountGroup(_Base):
     )
 
     # relationships
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="discount_group"
-    )
-    discounts: _orm.Mapped[_t.List["Discount"]] = _orm.relationship(
-        back_populates="group"
-    )
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="discount_group")
+
+    discounts: _orm.Mapped[
+        _t.List["Discount"]] = _orm.relationship(back_populates="group")
 
 
 class Discount(_Base):
@@ -2069,13 +2312,20 @@ class Discount(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     type: _orm.Mapped[_types.enums.DiscountType] = _orm.mapped_column(
-        _sql.Enum(_types.enums.DiscountType), nullable=False, index=True
+        _sql.Enum(_types.enums.DiscountType),
+        nullable=False,
+        index=True
     )
     promocode: _orm.Mapped[_t.Optional[str]] = _orm.mapped_column(
-        _sql.String, nullable=True, index=True, unique=True
+        _sql.String,
+        nullable=True,
+        index=True,
+        unique=True
     )
     group_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2084,18 +2334,29 @@ class Discount(_Base):
         index=True,
     )
     delivery_only: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, index=True, default=False
+        _sql.Boolean,
+        nullable=False,
+        index=True,
+        default=False
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, index=True, nullable=False
+        _sql.String,
+        index=True,
+        nullable=False
     )
     description: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, default="", nullable=False
+        _sql.String,
+        default="",
+        nullable=False
     )
     condition: _orm.Mapped[_t.Optional[str]] = _orm.mapped_column(
-        _sql.String, nullable=True
+        _sql.String,
+        nullable=True
     )
-    value: _orm.Mapped[str] = _orm.mapped_column(_sql.String, nullable=False)
+    value: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String,
+        nullable=False
+    )
     task_target_id = _orm.mapped_column(
         _sql.Integer,
         _sql.ForeignKey("TaskTarget.id"),
@@ -2104,18 +2365,18 @@ class Discount(_Base):
     )
 
     # relationships
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="discount"
-    )
-    group: _orm.Mapped["DiscountGroup"] = _orm.relationship(
-        back_populates="discounts"
-    )
-    options: _orm.Mapped[_t.List["DiscountOption"]] = _orm.relationship(
-        back_populates="discount"
-    )
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="discount")
+
+    group: _orm.Mapped[
+        "DiscountGroup"] = _orm.relationship(back_populates="discounts")
+
+    options: _orm.Mapped[
+        _t.List["DiscountOption"]] = _orm.relationship(back_populates="discount")
+
     restaurants: _orm.Mapped[
-        _t.List["RestaurantDiscount"]
-    ] = _orm.relationship(back_populates="discount")
+        _t.List["RestaurantDiscount"]] = _orm.relationship(back_populates="discount")
 
 
 class RestaurantDiscount(_Base):
@@ -2127,19 +2388,23 @@ class RestaurantDiscount(_Base):
 
     # columns
     restaurant_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Restaurant.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Restaurant.id"),
+        primary_key=True
     )
     discount_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Discount.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Discount.id"),
+        primary_key=True
     )
 
     # relationships
-    restaurant: _orm.Mapped["Restaurant"] = _orm.relationship(
-        back_populates="discounts"
-    )
-    discount: _orm.Mapped["Discount"] = _orm.relationship(
-        back_populates="restaurants"
-    )
+
+    restaurant: _orm.Mapped[
+        "Restaurant"] = _orm.relationship(back_populates="discounts")
+
+    discount: _orm.Mapped[
+        "Discount"] = _orm.relationship(back_populates="restaurants")
 
     # composite primary key
     __table_args__ = (
@@ -2157,19 +2422,23 @@ class CustomerOrderDiscount(_Base):
 
     # columns
     customer_order_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("CustomerOrder.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("CustomerOrder.id"),
+        primary_key=True
     )
     discount_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Discount.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Discount.id"),
+        primary_key=True
     )
 
     # relationshis
-    customer_order: _orm.Mapped["CustomerOrder"] = _orm.relationship(
-        back_populates="discounts"
-    )
-    discount: _orm.Mapped["Discount"] = _orm.relationship(
-        back_populates="orders"
-    )
+
+    customer_order: _orm.Mapped[
+        "CustomerOrder"] = _orm.relationship(back_populates="discounts")
+
+    discount: _orm.Mapped[
+        "Discount"] = _orm.relationship(back_populates="orders")
 
 
 class DiscountOption(_Base):
@@ -2182,22 +2451,27 @@ class DiscountOption(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     title: _orm.Mapped[_t.Optional[str]] = _orm.mapped_column(
-        _sql.String, nullable=True
+        _sql.String,
+        nullable=True
     )
     discount_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Discount.id"), nullable=False
+        _sql.Integer,
+        _sql.ForeignKey("Discount.id"),
+        nullable=False
     )
 
     # relationships
-    discount: _orm.Mapped["Discount"] = _orm.relationship(
-        back_populates="options"
-    )
-    products: _orm.Mapped["DiscountOptionProduct"] = _orm.relationship(
-        back_populates="option"
-    )
+
+    discount: _orm.Mapped[
+        "Discount"] = _orm.relationship(back_populates="options")
+
+    products: _orm.Mapped[
+        "DiscountOptionProduct"] = _orm.relationship(back_populates="option")
 
 
 class DiscountOptionProduct(_Base):
@@ -2210,19 +2484,23 @@ class DiscountOptionProduct(_Base):
 
     # columns
     discount_option_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("DiscountOption.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("DiscountOption.id"),
+        primary_key=True
     )
     product_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Product.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Product.id"),
+        primary_key=True
     )
 
     # relationships
-    option: _orm.Mapped["DiscountOption"] = _orm.relationship(
-        back_populates="products"
-    )
-    product: _orm.Mapped["Product"] = _orm.relationship(
-        back_populates="discounts"
-    )
+
+    option: _orm.Mapped[
+        "DiscountOption"] = _orm.relationship(back_populates="products")
+
+    product: _orm.Mapped[
+        "Product"] = _orm.relationship(back_populates="discounts")
 
 
 class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
@@ -2234,7 +2512,9 @@ class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2245,12 +2525,12 @@ class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
     )
 
     # relationships
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="supply_order"
-    )
-    items: _orm.Mapped[_t.List["SupplyOrderItem"]] = _orm.relationship(
-        back_populates="kitchen_order"
-    )
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="supply_order")
+
+    items: _orm.Mapped[
+        _t.List["SupplyOrderItem"]] = _orm.relationship(back_populates="kitchen_order")
 
 
 class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
@@ -2258,20 +2538,27 @@ class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
 
     # columns
     supply_order_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("SupplyOrder.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("SupplyOrder.id"),
+        primary_key=True
     )
     item_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Item.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Item.id"),
+        primary_key=True
     )
-    count: _orm.Mapped[float] = _orm.mapped_column(_sql.Float, nullable=False)
+    count: _orm.Mapped[float] = _orm.mapped_column(
+        _sql.Float,
+        nullable=False
+    )
 
     # relationships
-    supply_order: _orm.Mapped["SupplyOrder"] = _orm.relationship(
-        back_populates="items"
-    )
-    item: _orm.Mapped["Item"] = _orm.relationship(
-        back_populates="supply_orders"
-    )
+
+    supply_order: _orm.Mapped[
+        "SupplyOrder"] = _orm.relationship(back_populates="items")
+
+    item: _orm.Mapped[
+        "Item"] = _orm.relationship(back_populates="supply_orders")
 
     # composite primary key
     __table_args__ = (
@@ -2279,12 +2566,10 @@ class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
         {},
     )
 
-    # validators
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v):
         _check_value(v, k, 1, "ge")
 
-    # property
     @property
     def _collection(self):  # ovverides abstract property
         return self.supply_order
@@ -2299,23 +2584,32 @@ class WriteOffReason(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, nullable=False, index=True
+        _sql.String,
+        unique=True,
+        nullable=False,
+        index=True
     )
-    descritption: _orm.Mapped[str] = _orm.mapped_column(_sql.String)
+    descritption: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String
+    )
     group_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("WriteOffReasonGroup.id"), nullable=False
+        _sql.Integer,
+        _sql.ForeignKey("WriteOffReasonGroup.id"),
+        nullable=False
     )
 
     # relationships
-    group: _orm.Mapped["WriteOffReasonGroup"] = _orm.relationship(
-        back_populates="reasons"
-    )
-    writeoffs: _orm.Mapped[_t.List["WriteOff"]] = _orm.relationship(
-        back_populates="reason"
-    )
+
+    group: _orm.Mapped[
+        "WriteOffReasonGroup"] = _orm.relationship(back_populates="reasons")
+
+    writeoffs: _orm.Mapped[
+        _t.List["WriteOff"]] = _orm.relationship(back_populates="reason")
 
 
 class WriteOffReasonGroup(_Base):
@@ -2323,19 +2617,26 @@ class WriteOffReasonGroup(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, nullable=False, index=True
+        _sql.String,
+        unique=True,
+        nullable=False,
+        index=True
     )
     description: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, default=""
+        _sql.String,
+        nullable=False,
+        default=""
     )
 
     # relationships
-    reasons: _orm.Mapped[_t.List["WriteOffReason"]] = _orm.relationship(
-        back_populates="group"
-    )
+
+    reasons: _orm.Mapped[
+        _t.List["WriteOffReason"]] = _orm.relationship(back_populates="group")
 
 
 class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
@@ -2343,7 +2644,9 @@ class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2360,15 +2663,15 @@ class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
     )
 
     # relationships
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="writeoff"
-    )
-    reason: _orm.Mapped["WriteOffReason"] = _orm.relationship(
-        back_populates="writeoffs"
-    )
-    items: _orm.Mapped[_t.List["WriteOffItem"]] = _orm.relationship(
-        back_populates="writeoff"
-    )
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="writeoff")
+
+    reason: _orm.Mapped[
+        "WriteOffReason"] = _orm.relationship(back_populates="writeoffs")
+
+    items: _orm.Mapped[
+        _t.List["WriteOffItem"]] = _orm.relationship(back_populates="writeoff")
 
 
 class WriteOffItem(_Base, _types.abstracts.ItemImplementationRelation):
@@ -2376,18 +2679,27 @@ class WriteOffItem(_Base, _types.abstracts.ItemImplementationRelation):
 
     # columns
     writeoff_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("WriteOff.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("WriteOff.id"),
+        primary_key=True
     )
     item_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Item.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("Item.id"),
+        primary_key=True
     )
-    count: _orm.Mapped[float] = _orm.mapped_column(_sql.Float, nullable=False)
+    count: _orm.Mapped[float] = _orm.mapped_column(
+        _sql.Float,
+        nullable=False
+    )
 
     # relationshils
-    writeoff: _orm.Mapped["WriteOff"] = _orm.relationship(
-        back_populates="materials"
-    )
-    item: _orm.Mapped["Item"] = _orm.relationship(back_populates="writeoffs")
+
+    writeoff: _orm.Mapped[
+        "WriteOff"] = _orm.relationship(back_populates="materials")
+
+    item: _orm.Mapped[
+        "Item"] = _orm.relationship(back_populates="writeoffs")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(writeoff_id, item_id), {})
@@ -2402,7 +2714,9 @@ class SupplyPayment(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2420,10 +2734,12 @@ class SupplyPayment(_Base):
     )
 
     # relationships
-    task_target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="supply_payment"
-    )
-    supply: _orm.Mapped["Supply"] = _orm.relationship(back_populates="payment")
+
+    task_target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="supply_payment")
+
+    supply: _orm.Mapped[
+        "Supply"] = _orm.relationship(back_populates="payment")
 
 
 class Tare(_Base, _types.abstracts.ItemImplementation):
@@ -2435,7 +2751,9 @@ class Tare(_Base, _types.abstracts.ItemImplementation):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     item_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2444,9 +2762,13 @@ class Tare(_Base, _types.abstracts.ItemImplementation):
         nullable=False,
         index=True,
     )
-    name: _orm.Mapped[str] = _orm.mapped_column(_sql.String, nullable=False)
+    name: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String,
+        nullable=False
+    )
     price: _orm.Mapped[_t.Optional[float]] = _orm.mapped_column(
-        _sql.Float, nullable=True
+        _sql.Float,
+        nullable=True
     )
     group_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2456,13 +2778,16 @@ class Tare(_Base, _types.abstracts.ItemImplementation):
     )
 
     # relationships
-    item: _orm.Mapped["Item"] = _orm.relationship(back_populates="tare")
-    products: _orm.Mapped[_t.List["Product"]] = _orm.relationship(
-        back_populates="tare"
-    )
-    group: _orm.Mapped["TareGroup"] = _orm.relationship(back_populates="tare")
 
-    # validators
+    item: _orm.Mapped[
+        "Item"] = _orm.relationship(back_populates="tare")
+
+    products: _orm.Mapped[
+        _t.List["Product"]] = _orm.relationship(back_populates="tare")
+
+    group: _orm.Mapped[
+        "TareGroup"] = _orm.relationship(back_populates="tare")
+
     @_orm.validates("price")
     def _validate_price(self, k: _t.Literal["price"], v: float):
         _check_value(v, k, 0, "gt")
@@ -2473,16 +2798,21 @@ class TareGroup(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, unique=True, nullable=False, index=True
+        _sql.String,
+        unique=True,
+        nullable=False,
+        index=True
     )
 
     # relationships
-    tare: _orm.Mapped[_t.List["Tare"]] = _orm.relationship(
-        back_populates="group"
-    )
+
+    tare: _orm.Mapped[
+        _t.List["Tare"]] = _orm.relationship(back_populates="group")
 
 
 class Inventory(_Base, _types.abstracts.ItemImplementation):
@@ -2494,7 +2824,9 @@ class Inventory(_Base, _types.abstracts.ItemImplementation):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     item_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2504,17 +2836,23 @@ class Inventory(_Base, _types.abstracts.ItemImplementation):
         index=True,
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, unique=True
+        _sql.String,
+        nullable=False,
+        unique=True
     )
     group_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("InventoryGroup.id"), nullable=False
+        _sql.Integer,
+        _sql.ForeignKey("InventoryGroup.id"),
+        nullable=False
     )
 
     # relationships
-    item: _orm.Mapped["Item"] = _orm.relationship(back_populates="inventory")
-    group: _orm.Mapped["InventoryGroup"] = _orm.relationship(
-        back_populates="inventory"
-    )
+
+    item: _orm.Mapped[
+        "Item"] = _orm.relationship(back_populates="inventory")
+
+    group: _orm.Mapped[
+        "InventoryGroup"] = _orm.relationship(back_populates="inventory")
 
 
 class InventoryGroup(_Base):
@@ -2522,22 +2860,26 @@ class InventoryGroup(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, unique=True
+        _sql.String,
+        nullable=False,
+        unique=True
     )
 
     # relationships
-    inventory: _orm.Mapped[_t.List["Inventory"]] = _orm.relationship(
-        back_populates="group"
-    )
-    subgroups: _orm.Mapped[_t.List["InventorySubGroup"]] = _orm.relationship(
-        back_populates="parent"
-    )
+
+    inventory: _orm.Mapped[
+        _t.List["Inventory"]] = _orm.relationship(back_populates="group")
+
+    subgroups: _orm.Mapped[
+        _t.List["InventorySubGroup"]] = _orm.relationship(back_populates="parent")
+
     parent_group: _orm.Mapped[
-        _t.Optional["InventorySubGroup"]
-    ] = _orm.relationship(back_populates="child")
+        _t.Optional["InventorySubGroup"]] = _orm.relationship(back_populates="child")
 
 
 class InventorySubGroup(_Base):
@@ -2545,19 +2887,23 @@ class InventorySubGroup(_Base):
 
     # columns
     parent_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("InventoryGroup.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("InventoryGroup.id"),
+        primary_key=True
     )
     child_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("InventoryGroup.id"), primary_key=True
+        _sql.Integer,
+        _sql.ForeignKey("InventoryGroup.id"),
+        primary_key=True
     )
 
     # relationships
-    parent: _orm.Mapped["InventoryGroup"] = _orm.relationship(
-        back_populates="subgroups"
-    )
-    child: _orm.Mapped["InventoryGroup"] = _orm.relationship(
-        back_populates="parent_group"
-    )
+
+    parent: _orm.Mapped[
+        "InventoryGroup"] = _orm.relationship(back_populates="subgroups")
+
+    child: _orm.Mapped[
+        "InventoryGroup"] = _orm.relationship(back_populates="parent_group")
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(parent_id, child_id), {})
@@ -2572,25 +2918,26 @@ class Item(_Base, _types.abstracts.Item):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
 
     # relationships
-    material: _orm.Mapped[_t.Optional["Material"]] = _orm.relationship(
-        back_populates="item"
-    )
-    tare: _orm.Mapped[_t.Optional["Tare"]] = _orm.relationship(
-        back_populates="item"
-    )
-    inventory: _orm.Mapped[_t.Optional["Inventory"]] = _orm.relationship(
-        back_populates="item"
-    )
-    writeoffs: _orm.Mapped[_t.List["WriteOffItem"]] = _orm.relationship(
-        back_populates="item"
-    )
-    supply_orders: _orm.Mapped[_t.List["SupplyOrderItem"]] = _orm.relationship(
-        back_populates="item"
-    )
+    material: _orm.Mapped[
+        _t.Optional["Material"]] = _orm.relationship(back_populates="item")
+
+    tare: _orm.Mapped[
+        _t.Optional["Tare"]] = _orm.relationship(back_populates="item")
+
+    inventory: _orm.Mapped[
+        _t.Optional["Inventory"]] = _orm.relationship(back_populates="item")
+
+    writeoffs: _orm.Mapped[
+        _t.List["WriteOffItem"]] = _orm.relationship(back_populates="item")
+
+    supply_orders: _orm.Mapped[
+        _t.List["SupplyOrderItem"]] = _orm.relationship(back_populates="item")
 
 
 class Task(_Base):
@@ -2604,12 +2951,21 @@ class Task(_Base):
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, primary_key=True, index=True
+        _sql.Integer,
+        primary_key=True,
+        index=True
     )
-    name: _orm.Mapped[str] = _orm.mapped_column(_sql.String, nullable=False)
-    comment: _orm.Mapped[str] = _orm.mapped_column(_sql.String)
+    name: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String,
+        nullable=False
+    )
+    comment: _orm.Mapped[str] = _orm.mapped_column(
+        _sql.String
+    )
     status: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String, nullable=False, index=True
+        _sql.String,
+        nullable=False,
+        index=True
     )
     target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2618,71 +2974,95 @@ class Task(_Base):
         index=True,
     )
     created: _orm.Mapped[_dt] = _orm.mapped_column(
-        _sql.DateTime, nullable=False, default=_dt.utcnow, index=True
+        _sql.DateTime,
+        nullable=False,
+        default=_dt.utcnow,
+        index=True
     )
     author_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Actor.id"), nullable=False, index=True
+        _sql.Integer,
+        _sql.ForeignKey("Actor.id"),
+        nullable=False,
+        index=True
     )
     changed: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, default=False
+        _sql.Boolean,
+        nullable=False,
+        default=False
     )
     start_execution: _orm.Mapped[_t.Optional[_dt]] = _orm.mapped_column(
-        _sql.DateTime, index=True, nullable=True
+        _sql.DateTime,
+        index=True,
+        nullable=True
     )
     execution_started: _orm.Mapped[_t.Optional[_dt]] = _orm.mapped_column(
-        _sql.DateTime, index=True, nullable=True
+        _sql.DateTime,
+        index=True,
+        nullable=True
     )
     fail_on_late_start: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, default=False
+        _sql.Boolean,
+        nullable=False,
+        default=False
     )
     complete_before: _orm.Mapped[_t.Optional[_dt]] = _orm.mapped_column(
-        _sql.DateTime, nullable=True
+        _sql.DateTime,
+        nullable=True
     )
     completed: _orm.Mapped[_t.Optional[_dt]] = _orm.mapped_column(
-        _sql.DateTime, nullable=True
+        _sql.DateTime,
+        nullable=True
     )
     fail_on_late_complete: _orm.Mapped[bool] = _orm.mapped_column(
-        _sql.Boolean, nullable=False, default=False
+        _sql.Boolean,
+        nullable=False,
+        default=False
     )
     executor_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Actor.id"), nullable=False, index=True
+        _sql.Integer,
+        _sql.ForeignKey("Actor.id"),
+        nullable=False,
+        index=True
     )
     approved: _orm.Mapped[_t.Optional[_dt]] = _orm.mapped_column(
-        _sql.DateTime, index=True, nullable=True
+        _sql.DateTime,
+        index=True,
+        nullable=True
     )
     inspector_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer, _sql.ForeignKey("Actor.id"), nullable=False, index=True
+        _sql.Integer,
+        _sql.ForeignKey("Actor.id"),
+        nullable=False,
+        index=True
     )
 
     # relationships
-    task_type: _orm.Mapped["TaskType"] = _orm.relationship(
-        back_populates="tasks"
-    )
-    target: _orm.Mapped["TaskTarget"] = _orm.relationship(
-        back_populates="task"
-    )
-    author: _orm.Mapped["Actor"] = _orm.relationship(
-        back_populates="created_tasks"
-    )
-    executor: _orm.Mapped["Actor"] = _orm.relationship(
-        back_populates="tasks_to_execute"
-    )
-    inspector: _orm.Mapped["Actor"] = _orm.relationship(
-        back_populates="tasks_to_inspect"
-    )
-    parent: _orm.Mapped[_t.Optional["SubTask"]] = _orm.relationship(
-        back_populates="subtasks"
-    )
-    subtasks: _orm.Mapped[_t.List["SubTask"]] = _orm.relationship(
-        back_populates="parent"
-    )
 
-    # validators
+    task_type: _orm.Mapped[
+        "TaskType"] = _orm.relationship(back_populates="tasks")
+
+    target: _orm.Mapped[
+        "TaskTarget"] = _orm.relationship(back_populates="task")
+
+    author: _orm.Mapped[
+        "Actor"] = _orm.relationship(back_populates="created_tasks")
+
+    executor: _orm.Mapped[
+        "Actor"] = _orm.relationship(back_populates="tasks_to_execute")
+
+    inspector: _orm.Mapped[
+        "Actor"] = _orm.relationship(back_populates="tasks_to_inspect")
+
+    parent: _orm.Mapped[
+        _t.Optional["SubTask"]] = _orm.relationship(back_populates="subtasks")
+
+    subtasks: _orm.Mapped[
+        _t.List["SubTask"]] = _orm.relationship(back_populates="parent")
+
     @_orm.validates("start_execution", "complete_before")
     def _validate_dates(self, k: str, v: _dt):
         _check_value(v, k, _dt.utcnow(), "ge")
 
-    # properties
     @property
     def is_started_late(self) -> bool:
         if not self.start_execution:

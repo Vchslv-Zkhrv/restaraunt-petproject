@@ -1,4 +1,4 @@
 [flake8]
 exclude = .git, frontend, .venv, __init__.py, literals.py, migrations
-max-line-length = 79
+max-line-length = 119
 

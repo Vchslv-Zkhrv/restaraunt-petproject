@@ -8,6 +8,8 @@ Abstract classes for sqlalchemy models.
 import abc as _abc
 import typing as _t
 
+from sqlalchemy import orm as _orm
+
 from . import enums as _enums
 
 
@@ -15,12 +17,11 @@ class Item:
 
     """Abstract class for base Item model"""
 
-    id: int
+    id: _orm.Mapped[int]
 
     @property
-    def _impl_and_type(
-        self,
-    ) -> _t.Tuple["ItemImplementation", _enums.ItemType]:
+    def _impl_and_type(self,) -> _t.Tuple["ItemImplementation", _enums.ItemType]:
+
         for t in _enums.ItemType:
             impl = self.__getattribute__(t.value)
             if impl:
@@ -41,41 +42,32 @@ class ItemImplementation:
 
     """Implementation of Item model"""
 
-    id: int
-    item_id: int
-    group_id: int
-
-    item: "Item"
-    group: "ItemImplementationGroup"
+    id: _orm.Mapped[int]
+    item_id: _orm.Mapped[int]
+    group_id: _orm.Mapped[int]
 
 
 class ItemImplementationGroup:
 
     """Group of ItemImplementation of one type"""
 
-    id: int
-    name: str
-
-    items: _t.List[ItemImplementation]
+    id: _orm.Mapped[int]
+    name: _orm.Mapped[str]
 
 
 class ItemImplementationCollection:
 
     """Collection of ItemImplementation of different types"""
 
-    id: int
-    name: str
-
-    items: _t.List["ItemImplementationRelation"]
+    id: _orm.Mapped[int]
+    name: _orm.Mapped[str]
 
 
 class ItemImplementationRelation:
 
     """ItemImplementation in AbstractItemCollection"""
 
-    item_id: int
-
-    item: ItemImplementation
+    item_id: _orm.Mapped[int]
 
     @property
     @_abc.abstractmethod

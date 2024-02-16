@@ -5,8 +5,6 @@ from sqlalchemy.ext.declarative import declarative_base as _declarative_base
 from sqlalchemy.orm import sessionmaker as _sessionmaker
 
 
-engine = _create_async_engine(_env.db_connect_url)
+engine = _create_async_engine(_env.db_connect_url, echo=True)
 Base = _declarative_base()
-AsyncSession = _sessionmaker(
-    engine, class_=_Session, expire_on_commit=False  # pyright: ignore
-)  # pyright: ignore
+AsyncSession = _sessionmaker(engine, class_=_Session, expire_on_commit=False)  # pyright: ignore
