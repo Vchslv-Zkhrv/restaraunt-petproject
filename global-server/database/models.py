@@ -25,6 +25,7 @@ import sqlalchemy.dialects.postgresql as _psql
 from email_validator import EmailNotValidError as _EmailError
 from email_validator import validate_email as _validate_email
 from typeguard import check_type as _check_type
+import ulid as _ulid
 
 from . import types_ as _types
 from .database import Base as _Base
@@ -1082,7 +1083,8 @@ class Customer(_Base):
     id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
         _psql.UUID(as_uuid=True),
         primary_key=True,
-        index=True
+        index=True,
+        default=_ulid.ULID
     )
     user_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1650,7 +1652,7 @@ class CustomerFavoriteProduct(_Base):
     customer_id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
         _psql.UUID(as_uuid=True),
         _sql.ForeignKey("Customer.id"),
-        primary_key=True
+        primary_key=True,
     )
     product_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1727,7 +1729,8 @@ class CustomerOrder(_Base):
     id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
         _psql.UUID(as_uuid=True),
         primary_key=True,
-        index=True
+        index=True,
+        default=_ulid.ULID
     )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
