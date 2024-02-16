@@ -54,6 +54,10 @@ def _check_value(value: object, value_name: str, criterion: object, comprasion: 
 class Actor(_Base):
     __tablename__ = "Actor"
 
+    @property
+    def abbreviation(self):
+        return "ac"
+
     """
     Basic model for both real and virtual actors
     """
@@ -89,6 +93,10 @@ class Actor(_Base):
 
 class Restaurant(_Base):
     __tablename__ = "Restaurant"
+
+    @property
+    def abbreviation(self):
+        return "rt"
 
     """
     Model describing a restaurant and it's local server
@@ -159,6 +167,10 @@ class Restaurant(_Base):
 class RestaurantExternalDepartment(_Base):
     __tablename__ = "RestaurantExternalDepartment"
 
+    @property
+    def abbreviation(self):
+        return "ed"
+
     """
     Restaurant department that issues orders
     (hall / pickup service / drive-thru / delivery)
@@ -221,6 +233,10 @@ class RestaurantExternalDepartment(_Base):
 class RestaurantExternalDepartmentWorkingHours(_Base):
     __tablename__ = "RestaurantExternalDepartmentWorkingHours"
 
+    @property
+    def abbreviation(self):
+        return "wh"
+
     """
     Restaurant external department working hours at a weekday
     """
@@ -257,6 +273,10 @@ class RestaurantExternalDepartmentWorkingHours(_Base):
 
 class RestaurantInternalDepartment(_Base):
     __tablename__ = "RestaurantInternalDepartment"
+
+    @property
+    def abbreviation(self):
+        return "id"
 
     """
     Restaurant department not involved in issuing orders
@@ -310,6 +330,10 @@ class RestaurantInternalDepartment(_Base):
 class RestaurantInternalSubDepartment(_Base):
     __tablename__ = "RestaurantInternalSubDepartment"
 
+    @property
+    def abbreviation(self):
+        return "sd"
+
     """
     Internal restaraunt department that reports to a parent department
     """
@@ -340,6 +364,10 @@ class RestaurantInternalSubDepartment(_Base):
 
 class DefaultActorTaskDelegation(_Base):
     __tablename__ = "DefaultActorTaskDelegation"
+
+    @property
+    def abbreviation(self):
+        return "td"
 
     """
     Logic for processing tasks and distributing subtasks to delegates.
@@ -459,6 +487,10 @@ class DefaultActorTaskDelegation(_Base):
 class DefaultActor(_Base):
     __tablename__ = "DefaultActor"
 
+    @property
+    def abbreviation(self):
+        return "da"
+
     """
     Virtual actors
     """
@@ -504,6 +536,10 @@ class DefaultActor(_Base):
 class TaskType(_Base):
     __tablename__ = "TaskType"
 
+    @property
+    def abbreviation(self):
+        return "tt"
+
     """
     Task templates
     """
@@ -536,6 +572,10 @@ class TaskType(_Base):
 class TaskTypeGroup(_Base):
     __tablename__ = "TaskTypeGroup"
 
+    @property
+    def abbreviation(self):
+        return "yg"
+
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -565,6 +605,10 @@ class TaskTypeGroup(_Base):
 class TaskTypeGroupType(_Base):
     __tablename__ = "TaskTypeGroupType"
 
+    @property
+    def abbreviation(self):
+        return "gt"
+
     # columns
     group_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -591,6 +635,10 @@ class TaskTypeGroupType(_Base):
 
 class ActorAccessLevel(_Base):
     __tablename__ = "ActorAccessLevel"
+
+    @property
+    def abbreviation(self):
+        return "al"
 
     """
     Personal access level issued by another actor
@@ -640,6 +688,10 @@ class ActorAccessLevel(_Base):
 
 class TaskTarget(_Base):
     __tablename__ = "TaskTarget"
+
+    @property
+    def abbreviation(self):
+        return "ta"
 
     """
     Action for which the task was created
@@ -695,6 +747,10 @@ class TaskTarget(_Base):
 class TaskTargetType(_Base):
     __tablename__ = "TaskTargetType"
 
+    @property
+    def abbreviation(self):
+        return "ay"
+
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -717,6 +773,10 @@ class TaskTargetType(_Base):
 
 class TaskTargetTypeTarget(_Base):
     __tablename__ = "TaskTargetTypeTarget"
+
+    @property
+    def abbreviation(self):
+        return "ya"
 
     # columns
     type_id: _orm.Mapped[int] = _orm.mapped_column(
@@ -742,6 +802,10 @@ class TaskTargetTypeTarget(_Base):
 
 class SubTask(_Base):
     __tablename__ = "SubTask"
+
+    @property
+    def abbreviation(self):
+        return "st"
 
     """
     A subtask created by the executor of the main task to complete it
@@ -778,6 +842,10 @@ class SubTask(_Base):
 
 class User(_Base):
     __tablename__ = "User"
+
+    @property
+    def abbreviation(self):
+        return "us"
 
     """
     People (real actor)
@@ -899,6 +967,10 @@ class User(_Base):
 class Verification(_Base):
     __tablename__ = "Verification"
 
+    @property
+    def abbreviation(self):
+        return "ve"
+
     """
     User contact data awaiting confirmaion
     """
@@ -930,6 +1002,10 @@ class Verification(_Base):
 
 class RestaurantEmployeePosition(_Base):
     __tablename__ = "RestaurantEmployeePosition"
+
+    @property
+    def abbreviation(self):
+        return "ep"
 
     """
     Job title
@@ -979,6 +1055,10 @@ class RestaurantEmployeePosition(_Base):
 class RestaurantEmployeePositionAccessLevel(_Base):
     __tablename__ = "RestaurantEmployeePositionAccessLevel"
 
+    @property
+    def abbreviation(self):
+        return "pl"
+
     """
     Group access levels for all restaurant employees in a specified position
     """
@@ -1017,6 +1097,10 @@ class RestaurantEmployeePositionAccessLevel(_Base):
 
 class RestaurantEmployee(_Base):
     __tablename__ = "RestaurantEmployee"
+
+    @property
+    def abbreviation(self):
+        return "re"
 
     """
     Base model for each restaurant employee
@@ -1079,6 +1163,10 @@ class RestaurantEmployee(_Base):
 class Customer(_Base):
     __tablename__ = "Customer"
 
+    @property
+    def abbreviation(self):
+        return "cu"
+
     # columns
     id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
         _psql.UUID(as_uuid=True),
@@ -1121,6 +1209,10 @@ class Material(_Base, _types.abstracts.ItemImplementation):
     """
     Supplied consumables
     """
+
+    @property
+    def abbreviation(self):
+        return "ma"
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
@@ -1189,6 +1281,10 @@ class Material(_Base, _types.abstracts.ItemImplementation):
 class MaterialStockBalance(_Base):
     __tablename__ = "MaterialStockBalance"
 
+    @property
+    def abbreviation(self):
+        return "sb"
+
     # columns
     material_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1222,6 +1318,10 @@ class MaterialStockBalance(_Base):
 class MaterialGroup(_Base):
     __tablename__ = "MaterialGroup"
 
+    @property
+    def abbreviation(self):
+        return "mg"
+
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1247,6 +1347,10 @@ class MaterialGroup(_Base):
 
 class MaterialSubGroup(_Base):
     __tablename__ = "MaterialSubGroup"
+
+    @property
+    def abbreviation(self):
+        return "ms"
 
     # columns
     parent_id: _orm.Mapped[int] = _orm.mapped_column(
@@ -1274,6 +1378,10 @@ class MaterialSubGroup(_Base):
 
 class Supply(_Base):
     __tablename__ = "Supply"
+
+    @property
+    def abbreviation(self):
+        return "sp"
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
@@ -1310,6 +1418,10 @@ class Supply(_Base):
 class SupplyItem(_Base):
     __tablename__ = "SupplyItem"
 
+    @property
+    def abbreviation(self):
+        return "si"
+
     # columns
     supply_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -1344,6 +1456,10 @@ class SupplyItem(_Base):
 
 class Ingridient(_Base):
     __tablename__ = "Ingridient"
+
+    @property
+    def abbreviation(self):
+        return "in"
 
     """
     Ingredient displayed in the dish composition
@@ -1412,6 +1528,10 @@ class Ingridient(_Base):
 class IngridientMaterial(_Base):
     __tablename__ = "IngridientMaterial"
 
+    @property
+    def abbreviation(self):
+        return "im"
+
     """
     Consumables that make up the ingredient
     """
@@ -1449,6 +1569,10 @@ class IngridientMaterial(_Base):
 
 class Product(_Base):
     __tablename__ = "Product"
+
+    @property
+    def abbreviation(self):
+        return "pr"
 
     """
     Item in the menu
@@ -1547,6 +1671,10 @@ class Product(_Base):
 class RestaurantProduct(_Base):
     __tablename__ = "RestaurantProduct"
 
+    @property
+    def abbreviation(self):
+        return "rp"
+
     """
     Product selling in a restaurant.
 
@@ -1588,6 +1716,10 @@ class RestaurantProduct(_Base):
 
 class ProductIngridient(_Base):
     __tablename__ = "ProductIngridient"
+
+    @property
+    def abbreviation(self):
+        return "pi"
 
     """
     Product composition with information on possible customization
@@ -1644,6 +1776,10 @@ class ProductIngridient(_Base):
 class CustomerFavoriteProduct(_Base):
     __tablename__ = "CustomerFavoriteProduct"
 
+    @property
+    def abbreviation(self):
+        return "fa"
+
     """
     Product in user's favorites
     """
@@ -1677,6 +1813,10 @@ class CustomerFavoriteProduct(_Base):
 
 class CustomerShoppingCartProduct(_Base):
     __tablename__ = "CustomerShoppingCartProduct"
+
+    @property
+    def abbreviation(self):
+        return "sc"
 
     """
     Product in user shopping cart
@@ -1720,6 +1860,10 @@ class CustomerShoppingCartProduct(_Base):
 
 class CustomerOrder(_Base):
     __tablename__ = "CustomerOrder"
+
+    @property
+    def abbreviation(self):
+        return "co"
 
     """
     Order made via website or waiter's terminal
@@ -1773,6 +1917,10 @@ class CustomerOrder(_Base):
 
 class CustomerOrderProduct(_Base):
     __tablename__ = "CustomerOrderProduct"
+
+    @property
+    def abbreviation(self):
+        return "op"
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
@@ -1860,6 +2008,10 @@ class CustomerOrderProduct(_Base):
 class OnlineOrder(_Base):
     __tablename__ = "OnlineOrder"
 
+    @property
+    def abbreviation(self):
+        return "oo"
+
     """
     Purchase on the website
     """
@@ -1887,6 +2039,10 @@ class OnlineOrder(_Base):
 
 class ProductAvailableExtraIngridient(_Base):
     __tablename__ = "ProductAvailableExtraIngridient"
+
+    @property
+    def abbreviation(self):
+        return "ae"
 
     """
     Ingridients that can be added to a product
@@ -1930,6 +2086,10 @@ class ProductAvailableExtraIngridient(_Base):
 class CustomerOrderProductIngridientChange(_Base):
     __tablename__ = "CustomerOrderProductIngridientChange"
 
+    @property
+    def abbreviation(self):
+        return "ic"
+
     """
     Customized ingridients in order
     """
@@ -1971,6 +2131,10 @@ class CustomerOrderProductIngridientChange(_Base):
 
 class CustomerOrderProductExtraIngridient(_Base):
     __tablename__ = "CustomerOrderExtraIngridient"
+
+    @property
+    def abbreviation(self):
+        return "ei"
 
     """
     Extra ingridients in order
@@ -2015,6 +2179,10 @@ class CustomerOrderProductExtraIngridient(_Base):
 class Table(_Base):
     __tablename__ = "Table"
 
+    @property
+    def abbreviation(self):
+        return "tb"
+
     """
     Table in a restaurant
     """
@@ -2049,6 +2217,10 @@ class Table(_Base):
 
 class TableLocation(_Base):
     __tablename__ = "TableLocation"
+
+    @property
+    def abbreviation(self):
+        return "lo"
 
     """
     Location with tables (floor, roof, etc.)
@@ -2086,6 +2258,10 @@ class TableLocation(_Base):
 class WaiterOrder(_Base):
     __tablename__ = "WaiterOrder"
 
+    @property
+    def abbreviation(self):
+        return "wo"
+
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2117,6 +2293,10 @@ class WaiterOrder(_Base):
 
 class Salary(_Base):
     __tablename__ = "Salary"
+
+    @property
+    def abbreviation(self):
+        return "sy"
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
@@ -2155,6 +2335,10 @@ class Salary(_Base):
 class AllergicFlag(_Base):
     __tablename__ = "AllergicFlag"
 
+    @property
+    def abbreviation(self):
+        return "af"
+
     """
     Possible options for risk groups and allergies
     """
@@ -2181,6 +2365,10 @@ class AllergicFlag(_Base):
 
 class MaterialAllergicFlag(_Base):
     __tablename__ = "MaterialAllergicFlag"
+
+    @property
+    def abbreviation(self):
+        return "mf"
 
     """
     Allergic flags of the consumable
@@ -2213,6 +2401,10 @@ class MaterialAllergicFlag(_Base):
 class ProductCategory(_Base):
     __tablename__ = "ProductCategory"
 
+    @property
+    def abbreviation(self):
+        return "pc"
+
     """
     Menu section
     """
@@ -2239,6 +2431,10 @@ class ProductCategory(_Base):
 
 class ProductCategoryProduct(_Base):
     __tablename__ = "ProductCategoryProduct"
+
+    @property
+    def abbreviation(self):
+        return "cp"
 
     # columns
     product_id: _orm.Mapped[int] = _orm.mapped_column(
@@ -2269,6 +2465,10 @@ class ProductCategoryProduct(_Base):
 
 class CustomerPayment(_Base):
     __tablename__ = "CustomerPayment"
+
+    @property
+    def abbreviation(self):
+        return "up"
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
@@ -2304,6 +2504,10 @@ class CustomerPayment(_Base):
 class DiscountGroup(_Base):
     __tablename__ = "DiscountGroup"
 
+    @property
+    def abbreviation(self):
+        return "dg"
+
     """
     Named menu section with promotional items
     """
@@ -2338,6 +2542,10 @@ class DiscountGroup(_Base):
 
 class Discount(_Base):
     __tablename__ = "Discount"
+
+    @property
+    def abbreviation(self):
+        return "di"
 
     """
     Single promotional offer
@@ -2416,6 +2624,10 @@ class Discount(_Base):
 class RestaurantDiscount(_Base):
     __tablename__ = "RestaurantDiscount"
 
+    @property
+    def abbreviation(self):
+        return "rd"
+
     """
     Discounts offered in a restaurant
     """
@@ -2450,6 +2662,10 @@ class RestaurantDiscount(_Base):
 class CustomerOrderDiscount(_Base):
     __tablename__ = "CustomerOrderDiscount"
 
+    @property
+    def abbreviation(self):
+        return "od"
+
     """
     Discounts used in order
     """
@@ -2477,6 +2693,10 @@ class CustomerOrderDiscount(_Base):
 
 class DiscountOption(_Base):
     __tablename__ = "DiscountOption"
+
+    @property
+    def abbreviation(self):
+        return "do"
 
     """
     A set of products from which you can choose one to participate
@@ -2512,6 +2732,10 @@ class DiscountOption(_Base):
 class DiscountOptionProduct(_Base):
     __tablename__ = "DiscountOptionProduct"
 
+    @property
+    def abbreviation(self):
+        return "dp"
+
     """
     Product that can be selected from the list as option to participate
     in the promotion
@@ -2540,6 +2764,10 @@ class DiscountOptionProduct(_Base):
 
 class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
     __tablename__ = "SupplyOrder"
+
+    @property
+    def abbreviation(self):
+        return "yo"
 
     """
     Order for the supply
@@ -2571,6 +2799,10 @@ class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
 
 class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
     __tablename__ = "SupplyOrderItem"
+
+    @property
+    def abbreviation(self):
+        return "yi"
 
     # columns
     supply_order_id: _orm.Mapped[int] = _orm.mapped_column(
@@ -2614,6 +2846,10 @@ class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
 class WriteOffReason(_Base):
     __tablename__ = "WriteOffReason"
 
+    @property
+    def abbreviation(self):
+        return "fr"
+
     """
     Write-off act (the reason why consumables can be written off)
     """
@@ -2652,6 +2888,10 @@ class WriteOffReason(_Base):
 class WriteOffReasonGroup(_Base):
     __tablename__ = "WriteOffReasonGroup"
 
+    @property
+    def abbreviation(self):
+        return "fg"
+
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2679,6 +2919,10 @@ class WriteOffReasonGroup(_Base):
 
 class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
     __tablename__ = "WriteOff"
+
+    @property
+    def abbreviation(self):
+        return "wf"
 
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
@@ -2716,6 +2960,10 @@ class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
 class WriteOffItem(_Base, _types.abstracts.ItemImplementationRelation):
     __tablename__ = "WriteOffItem"
 
+    @property
+    def abbreviation(self):
+        return "wi"
+
     # columns
     writeoff_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2751,6 +2999,10 @@ class WriteOffItem(_Base, _types.abstracts.ItemImplementationRelation):
 class SupplyPayment(_Base):
     __tablename__ = "SupplyPayment"
 
+    @property
+    def abbreviation(self):
+        return "yy"
+
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2784,6 +3036,10 @@ class SupplyPayment(_Base):
 
 class Tare(_Base, _types.abstracts.ItemImplementation):
     __tablename__ = "Tare"
+
+    @property
+    def abbreviation(self):
+        return "te"
 
     """
     Packaging for delivered products
@@ -2837,6 +3093,10 @@ class Tare(_Base, _types.abstracts.ItemImplementation):
 class TareGroup(_Base):
     __tablename__ = "TareGroup"
 
+    @property
+    def abbreviation(self):
+        return "eg"
+
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2859,6 +3119,10 @@ class TareGroup(_Base):
 
 class Inventory(_Base, _types.abstracts.ItemImplementation):
     __tablename__ = "Inventory"
+
+    @property
+    def abbreviation(self):
+        return "iy"
 
     """
     Reestaraunt property
@@ -2901,6 +3165,10 @@ class Inventory(_Base, _types.abstracts.ItemImplementation):
 class InventoryGroup(_Base):
     __tablename__ = "InventoryGroup"
 
+    @property
+    def abbreviation(self):
+        return "ng"
+
     # columns
     id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2929,6 +3197,10 @@ class InventoryGroup(_Base):
 class InventorySubGroup(_Base):
     __tablename__ = "InventorySubGroup"
 
+    @property
+    def abbreviation(self):
+        return "ns"
+
     # columns
     parent_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
@@ -2955,6 +3227,10 @@ class InventorySubGroup(_Base):
 
 class Item(_Base, _types.abstracts.Item):
     __tablename__ = "Item"
+
+    @property
+    def abbreviation(self):
+        return "em"
 
     """
     Any company property that is used to operate a restaurant and prepare food.
@@ -2987,6 +3263,10 @@ class Item(_Base, _types.abstracts.Item):
 
 class Task(_Base):
     __tablename__ = "Task"
+
+    @property
+    def abbreviation(self):
+        return "tk"
 
     """
     The main object required to perform financially responsible tasks.
