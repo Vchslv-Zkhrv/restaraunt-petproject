@@ -14,12 +14,14 @@ import typing as _t
 from datetime import date as _date
 from datetime import datetime as _dt
 from datetime import time as _time
+import uuid as _uuid
 
 import config as _cfg
 import passlib.hash as _hash
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
 import sqlalchemy.schema as _schema
+import sqlalchemy.dialects.postgresql as _psql
 from email_validator import EmailNotValidError as _EmailError
 from email_validator import validate_email as _validate_email
 from typeguard import check_type as _check_type
@@ -1723,9 +1725,8 @@ class CustomerOrder(_Base):
     """
 
     # columns
-    id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
-        _sql.Identity(),
+    id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         primary_key=True,
         index=True
     )
@@ -1778,8 +1779,8 @@ class CustomerOrderProduct(_Base):
         primary_key=True,
         index=True
     )
-    order_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
+    order_id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         _sql.ForeignKey("CustomerOrder.id"),
         nullable=False,
         index=True,
@@ -1868,8 +1869,8 @@ class OnlineOrder(_Base):
         primary_key=True,
         index=True
     )
-    order_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
+    order_id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         _sql.ForeignKey("CustomerOrder.id"),
         nullable=False,
         index=True,
@@ -2095,8 +2096,8 @@ class WaiterOrder(_Base):
         _sql.ForeignKey("Table.id"),
         nullable=False
     )
-    order_Id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
+    order_Id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         _sql.ForeignKey("CustomerOrder.id"),
         nullable=False,
         unique=True,
@@ -2274,8 +2275,8 @@ class CustomerPayment(_Base):
         primary_key=True,
         index=True
     )
-    order_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
+    order_id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         _sql.ForeignKey("CustomerOrder.id"),
         unique=True,
         nullable=False,
@@ -2452,8 +2453,8 @@ class CustomerOrderDiscount(_Base):
     """
 
     # columns
-    customer_order_id: _orm.Mapped[int] = _orm.mapped_column(
-        _sql.Integer,
+    customer_order_id: _orm.Mapped[_uuid.UUID] = _orm.mapped_column(
+        _psql.UUID(as_uuid=True),
         _sql.ForeignKey("CustomerOrder.id"),
         primary_key=True
     )
