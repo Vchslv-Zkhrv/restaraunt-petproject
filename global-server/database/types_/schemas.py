@@ -6,8 +6,8 @@ from pydantic import Field as _Field
 
 class _Schema(_Base):
     class Config:
-        orm_mode = True
         arbitrary_types_allowed = True
+        from_attributes = True
 
 
 class WeekdayWorkingHours(_Schema):
