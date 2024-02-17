@@ -73,13 +73,13 @@ class Actor(_Base):
     # relationships
 
     created_tasks: _orm.Mapped[
-        _t.List["Task"]] = _orm.relationship(back_populates="author")
+        _t.List["Task"]] = _orm.relationship(back_populates="author", foreign_keys="Task.author_id")
 
     tasks_to_execute: _orm.Mapped[
-        _t.List["Task"]] = _orm.relationship(back_populates="executor")
+        _t.List["Task"]] = _orm.relationship(back_populates="executor", foreign_keys="Task.executor_id")
 
     tasks_to_inspect: _orm.Mapped[
-        _t.List["Task"]] = _orm.relationship(back_populates="inspector")
+        _t.List["Task"]] = _orm.relationship(back_populates="inspector", foreign_keys="Task.inspector_id")
 
     default_actor: _orm.Mapped[
         _t.Optional["DefaultActor"]] = _orm.relationship(back_populates="actor")
@@ -143,7 +143,7 @@ class Restaurant(_Base):
         _t.List["RestaurantExternalDepartment"]] = _orm.relationship(back_populates="restaurant")
 
     internal_departments: _orm.Mapped[
-        _t.List["RestaurantInternalDepartment"]] = _orm.relationship(back_populates="restaraunt")
+        _t.List["RestaurantInternalDepartment"]] = _orm.relationship(back_populates="restaurant")
 
     employees: _orm.Mapped[
         _t.List["RestaurantEmployee"]] = _orm.relationship(back_populates="restaurant")
@@ -321,10 +321,16 @@ class RestaurantInternalDepartment(_Base):
         "DefaultActor"] = _orm.relationship(back_populates="restaurant_internal_department")
 
     sub_departments: _orm.Mapped[
-        _t.List["RestaurantInternalSubDepartment"]] = _orm.relationship(back_populates="parent")
+        _t.List["RestaurantInternalSubDepartment"]] = _orm.relationship(
+            back_populates="parent",
+            foreign_keys="RestaurantInternalSubDepartment.parent_id"
+    )
 
     parent_department: _orm.Mapped[
-        "RestaurantInternalSubDepartment"] = _orm.relationship(back_populates="child")
+        "RestaurantInternalSubDepartment"] = _orm.relationship(
+            back_populates="child",
+            foreign_keys="RestaurantInternalSubDepartment.child_id"
+    )
 
 
 class RestaurantInternalSubDepartment(_Base):
@@ -353,10 +359,14 @@ class RestaurantInternalSubDepartment(_Base):
     # relationships
 
     parent: _orm.Mapped[
-        "RestaurantInternalDepartment"] = _orm.relationship(back_populates="sub_departments")
+        "RestaurantInternalDepartment"] = _orm.relationship(
+            back_populates="sub_departments", foreign_keys=[parent_id]
+    )
 
     child: _orm.Mapped[
-        "RestaurantInternalDepartment"] = _orm.relationship(back_populates="parent_department")
+        "RestaurantInternalDepartment"] = _orm.relationship(
+            back_populates="parent_department", foreign_keys=[child_id]
+    )
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(child_id, parent_id), {})
@@ -448,10 +458,16 @@ class DefaultActorTaskDelegation(_Base):
         "DefaultActor"] = _orm.relationship(back_populates="task_delegations")
 
     incoming_task_type: _orm.Mapped[
-        "TaskType"] = _orm.relationship(back_populates="incoming_in_task_delegations")
+        "TaskType"] = _orm.relationship(
+            back_populates="incoming_in_task_delegations",
+            foreign_keys=[incoming_task_type_id]
+    )
 
     outcoming_task_type: _orm.Mapped[
-        "TaskType"] = _orm.relationship(back_populates="outcoming_in_task_delegations")
+        "TaskType"] = _orm.relationship(
+            back_populates="outcoming_in_task_delegations",
+            foreign_keys=[outcoming_task_type_id]
+    )
 
     # composite primary key
     __table_args__ = (
@@ -559,14 +575,23 @@ class TaskType(_Base):
 
     # relationships
 
+    tasks: _orm.Mapped[
+        _t.List["Task"]] = _orm.relationship(back_populates="type")
+
     groups: _orm.Mapped[
         _t.List["TaskTypeGroupType"]] = _orm.relationship(back_populates="type")
 
     incoming_in_task_delegations: _orm.Mapped[
-        _t.List["DefaultActorTaskDelegation"]] = _orm.relationship(back_populates="incoming_task_type")
+        _t.List["DefaultActorTaskDelegation"]] = _orm.relationship(
+            back_populates="incoming_task_type",
+            foreign_keys="DefaultActorTaskDelegation.incoming_task_type_id"
+    )
 
     outcoming_in_task_delegations: _orm.Mapped[
-        _t.List["DefaultActorTaskDelegation"]] = _orm.relationship(back_populates="outcoming_task_type")
+        _t.List["DefaultActorTaskDelegation"]] = _orm.relationship(
+            back_populates="outcoming_task_type",
+            foreign_keys="DefaultActorTaskDelegation.outcoming_task_type_id"
+    )
 
 
 class TaskTypeGroup(_Base):
@@ -740,7 +765,7 @@ class TaskTarget(_Base):
     discount_group: _orm.Mapped[
         _t.Optional["DiscountGroup"]] = _orm.relationship(back_populates="task_target")
 
-    dicsount: _orm.Mapped[
+    discount: _orm.Mapped[
         _t.Optional["Discount"]] = _orm.relationship(back_populates="task_target")
 
 
@@ -831,10 +856,10 @@ class SubTask(_Base):
     # relationships
 
     subtasks: _orm.Mapped[
-        _t.List["Task"]] = _orm.relationship(back_populates="parent")
+        _t.List["Task"]] = _orm.relationship(back_populates="parent", foreign_keys=[child_id])
 
     parent: _orm.Mapped[
-        "Task"] = _orm.relationship(back_populates="subtasks")
+        "Task"] = _orm.relationship(back_populates="subtasks", foreign_keys=[parent_id])
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(child_id, parent_id), {})
@@ -1192,11 +1217,11 @@ class Customer(_Base):
     user: _orm.Mapped[
         "User"] = _orm.relationship(back_populates="customer")
 
-    favorites: _orm.Mapped[
+    favorite_products: _orm.Mapped[
         _t.List["CustomerFavoriteProduct"]] = _orm.relationship(back_populates="customer")
 
     shopping_cart_products: _orm.Mapped[
-        _t.List["CustomerFavoriteProduct"]] = _orm.relationship(back_populates="customer")
+        _t.List["CustomerShoppingCartProduct"]] = _orm.relationship(back_populates="customer")
 
     @_orm.validates("bonuts_points")
     def _validate_bonus_points(self, k: str, v: float):
@@ -1339,10 +1364,17 @@ class MaterialGroup(_Base):
     # relationships
 
     parent_group: _orm.Mapped[
-        _t.Optional["MaterialSubGroup"]] = _orm.relationship(back_populates="child")
+        _t.Optional["MaterialSubGroup"]] = _orm.relationship(
+            back_populates="child", foreign_keys="MaterialSubGroup.child_id"
+    )
 
     subgroups: _orm.Mapped[
-        _t.List["MaterialSubGroup"]] = _orm.relationship(back_populates="parent")
+        _t.List["MaterialSubGroup"]] = _orm.relationship(
+            back_populates="parent", foreign_keys="MaterialSubGroup.parent_id"
+    )
+
+    materials: _orm.Mapped[
+        _t.List["Material"]] = _orm.relationship(back_populates="group")
 
 
 class MaterialSubGroup(_Base):
@@ -1367,10 +1399,10 @@ class MaterialSubGroup(_Base):
     # relationships
 
     parent: _orm.Mapped[
-        "MaterialGroup"] = _orm.relationship(back_populates="subgroups")
+        "MaterialGroup"] = _orm.relationship(back_populates="subgroups", foreign_keys=[parent_id])
 
     child: _orm.Mapped[
-        "MaterialGroup"] = _orm.relationship(back_populates="parent_group")
+        "MaterialGroup"] = _orm.relationship(back_populates="parent_group", foreign_keys=[child_id])
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(child_id, parent_id), {})
@@ -1509,6 +1541,12 @@ class Ingridient(_Base):
 
     available_to_add_in_products: _orm.Mapped[
         _t.List["ProductAvailableExtraIngridient"]] = _orm.relationship(back_populates="ingridient")
+
+    changed_in_order_products: _orm.Mapped[
+        _t.List["CustomerOrderProductIngridientChange"]] = _orm.relationship(back_populates="ingridient")
+
+    added_to_order_products: _orm.Mapped[
+        _t.List["CustomerOrderProductExtraIngridient"]] = _orm.relationship(back_populates="ingridient")
 
     @property
     def nutritional_values(self) -> _types.schemas.NutritionalValues:
@@ -1802,7 +1840,7 @@ class CustomerFavoriteProduct(_Base):
         "Customer"] = _orm.relationship(back_populates="favorite_products")
 
     product: _orm.Mapped[
-        "Product"] = _orm.relationship(back_populates="cusomers_who_added_to_favorites")
+        "Product"] = _orm.relationship(back_populates="customers_who_added_to_favorites")
 
     # composite primary key
     __table_args__ = (
@@ -1914,6 +1952,9 @@ class CustomerOrder(_Base):
     restaurant: _orm.Mapped[
         "Restaurant"] = _orm.relationship(back_populates="customer_orders")
 
+    discounts: _orm.Mapped[
+        _t.List["CustomerOrderDiscount"]] = _orm.relationship(back_populates="customer_order")
+
 
 class CustomerOrderProduct(_Base):
     __tablename__ = "CustomerOrderProduct"
@@ -1969,7 +2010,10 @@ class CustomerOrderProduct(_Base):
         _t.Optional["DiscountOption"]] = _orm.relationship(back_populates="order_products")
 
     changed_ingridients: _orm.Mapped[
-        _t.List["CustomerOrderProductIngridientChange"]] = _orm.relationship(back_populates="product")
+        _t.List["CustomerOrderProductIngridientChange"]] = _orm.relationship(back_populates="order_product")
+
+    extra_ingridients: _orm.Mapped[
+        _t.List["CustomerOrderProductExtraIngridient"]] = _orm.relationship(back_populates="order_product")
 
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v: int):
@@ -2620,6 +2664,9 @@ class Discount(_Base):
     restaurants: _orm.Mapped[
         _t.List["RestaurantDiscount"]] = _orm.relationship(back_populates="discount")
 
+    orders: _orm.Mapped[
+        _t.List["CustomerOrderDiscount"]] = _orm.relationship(back_populates="discount")
+
 
 class RestaurantDiscount(_Base):
     __tablename__ = "RestaurantDiscount"
@@ -2728,6 +2775,9 @@ class DiscountOption(_Base):
     products: _orm.Mapped[
         "DiscountOptionProduct"] = _orm.relationship(back_populates="option")
 
+    order_products: _orm.Mapped[
+        _t.List["CustomerOrderProduct"]] = _orm.relationship(back_populates="discount_option")
+
 
 class DiscountOptionProduct(_Base):
     __tablename__ = "DiscountOptionProduct"
@@ -2794,7 +2844,7 @@ class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
         "TaskTarget"] = _orm.relationship(back_populates="supply_order")
 
     items: _orm.Mapped[
-        _t.List["SupplyOrderItem"]] = _orm.relationship(back_populates="kitchen_order")
+        _t.List["SupplyOrderItem"]] = _orm.relationship(back_populates="supply_order")
 
 
 class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
@@ -2983,7 +3033,7 @@ class WriteOffItem(_Base, _types.abstracts.ItemImplementationRelation):
     # relationshils
 
     writeoff: _orm.Mapped[
-        "WriteOff"] = _orm.relationship(back_populates="materials")
+        "WriteOff"] = _orm.relationship(back_populates="items")
 
     item: _orm.Mapped[
         "Item"] = _orm.relationship(back_populates="writeoffs")
@@ -3188,10 +3238,14 @@ class InventoryGroup(_Base):
         _t.List["Inventory"]] = _orm.relationship(back_populates="group")
 
     subgroups: _orm.Mapped[
-        _t.List["InventorySubGroup"]] = _orm.relationship(back_populates="parent")
+        _t.List["InventorySubGroup"]] = _orm.relationship(
+            back_populates="parent", foreign_keys="InventorySubGroup.parent_id"
+    )
 
     parent_group: _orm.Mapped[
-        _t.Optional["InventorySubGroup"]] = _orm.relationship(back_populates="child")
+        _t.Optional["InventorySubGroup"]] = _orm.relationship(
+            back_populates="child", foreign_keys="InventorySubGroup.child_id"
+    )
 
 
 class InventorySubGroup(_Base):
@@ -3216,10 +3270,10 @@ class InventorySubGroup(_Base):
     # relationships
 
     parent: _orm.Mapped[
-        "InventoryGroup"] = _orm.relationship(back_populates="subgroups")
+        "InventoryGroup"] = _orm.relationship(back_populates="subgroups", foreign_keys=[parent_id])
 
     child: _orm.Mapped[
-        "InventoryGroup"] = _orm.relationship(back_populates="parent_group")
+        "InventoryGroup"] = _orm.relationship(back_populates="parent_group", foreign_keys=[child_id])
 
     # composite primary key
     __table_args__ = (_schema.PrimaryKeyConstraint(parent_id, child_id), {})
@@ -3260,6 +3314,9 @@ class Item(_Base, _types.abstracts.Item):
     supply_orders: _orm.Mapped[
         _t.List["SupplyOrderItem"]] = _orm.relationship(back_populates="item")
 
+    supplies: _orm.Mapped[
+        _t.List["SupplyItem"]] = _orm.relationship(back_populates="item")
+
 
 class Task(_Base):
     __tablename__ = "Task"
@@ -3279,6 +3336,12 @@ class Task(_Base):
         _sql.Integer,
         _sql.Identity(),
         primary_key=True,
+        index=True
+    )
+    type_id: _orm.Mapped[int] = _orm.mapped_column(
+        _sql.Integer,
+        _sql.ForeignKey("TaskType.id"),
+        nullable=False,
         index=True
     )
     name: _orm.Mapped[str] = _orm.mapped_column(
@@ -3364,26 +3427,26 @@ class Task(_Base):
 
     # relationships
 
-    task_type: _orm.Mapped[
+    type: _orm.Mapped[
         "TaskType"] = _orm.relationship(back_populates="tasks")
 
     target: _orm.Mapped[
         "TaskTarget"] = _orm.relationship(back_populates="task")
 
     author: _orm.Mapped[
-        "Actor"] = _orm.relationship(back_populates="created_tasks")
+        "Actor"] = _orm.relationship(back_populates="created_tasks", foreign_keys=[author_id])
 
     executor: _orm.Mapped[
-        "Actor"] = _orm.relationship(back_populates="tasks_to_execute")
+        "Actor"] = _orm.relationship(back_populates="tasks_to_execute", foreign_keys=[executor_id])
 
     inspector: _orm.Mapped[
-        "Actor"] = _orm.relationship(back_populates="tasks_to_inspect")
+        "Actor"] = _orm.relationship(back_populates="tasks_to_inspect", foreign_keys=[inspector_id])
 
     parent: _orm.Mapped[
-        _t.Optional["SubTask"]] = _orm.relationship(back_populates="subtasks")
+        _t.Optional["SubTask"]] = _orm.relationship(back_populates="subtasks", foreign_keys="SubTask.child_id")
 
     subtasks: _orm.Mapped[
-        _t.List["SubTask"]] = _orm.relationship(back_populates="parent")
+        _t.List["SubTask"]] = _orm.relationship(back_populates="parent", foreign_keys="SubTask.parent_id")
 
     @_orm.validates("start_execution", "complete_before")
     def _validate_dates(self, k: str, v: _dt):
@@ -3426,3 +3489,77 @@ class Task(_Base):
                 level = []
                 level.append(s)
         return result
+
+
+model = _t.Union[
+    Actor,
+    Restaurant,
+    RestaurantExternalDepartment,
+    RestaurantExternalDepartmentWorkingHours,
+    RestaurantInternalDepartment,
+    RestaurantInternalSubDepartment,
+    DefaultActorTaskDelegation,
+    DefaultActor,
+    TaskType,
+    TaskTypeGroup,
+    TaskTypeGroupType,
+    ActorAccessLevel,
+    TaskTarget,
+    TaskTargetType,
+    TaskTargetTypeTarget,
+    SubTask,
+    User,
+    Verification,
+    RestaurantEmployeePosition,
+    RestaurantEmployeePositionAccessLevel,
+    RestaurantEmployee,
+    Customer,
+    Material,
+    MaterialStockBalance,
+    MaterialGroup,
+    MaterialSubGroup,
+    Supply,
+    SupplyItem,
+    Ingridient,
+    IngridientMaterial,
+    Product,
+    RestaurantProduct,
+    ProductIngridient,
+    CustomerFavoriteProduct,
+    CustomerShoppingCartProduct,
+    CustomerOrder,
+    CustomerOrderProduct,
+    OnlineOrder,
+    ProductAvailableExtraIngridient,
+    CustomerOrderProductIngridientChange,
+    CustomerOrderProductExtraIngridient,
+    Table,
+    TableLocation,
+    WaiterOrder,
+    Salary,
+    AllergicFlag,
+    MaterialAllergicFlag,
+    ProductCategory,
+    ProductCategoryProduct,
+    CustomerPayment,
+    DiscountGroup,
+    Discount,
+    RestaurantDiscount,
+    CustomerOrderDiscount,
+    DiscountOption,
+    DiscountOptionProduct,
+    SupplyOrder,
+    SupplyOrderItem,
+    WriteOffReason,
+    WriteOffReasonGroup,
+    WriteOff,
+    WriteOffItem,
+    SupplyPayment,
+    Tare,
+    TareGroup,
+    Inventory,
+    InventoryGroup,
+    InventorySubGroup,
+    Item,
+    Task
+]
