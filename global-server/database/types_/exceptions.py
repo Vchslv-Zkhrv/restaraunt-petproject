@@ -66,3 +66,20 @@ class PhoneValidationError(PersonalDataValidationError):
 class TelegramValidationError(PersonalDataValidationError):
 
     """Telegram has not passed primary validation"""
+
+
+class ActorError(SecurityException):
+
+    """Main class for security errors connected with Actor model"""
+
+
+class ActorExistsError(ActorError):
+    pass
+
+
+class ActorNotExistsError(ActorError):
+    pass
+
+
+class ActorCreationError(ActorError):
+    pass

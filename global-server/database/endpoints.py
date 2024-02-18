@@ -4,7 +4,6 @@ Database CRUDS endpoints.
 All interaction with database must be procceeded here (not in models.py)
 """
 
-
 from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession
 
 from . import database as _db
