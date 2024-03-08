@@ -54,8 +54,9 @@ def _check_value(value: object, value_name: str, criterion: object, comprasion: 
 class Actor(_Base):
     __tablename__ = "Actor"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ac"
 
     """
@@ -94,8 +95,9 @@ class Actor(_Base):
 class Restaurant(_Base):
     __tablename__ = "Restaurant"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "rt"
 
     """
@@ -167,8 +169,9 @@ class Restaurant(_Base):
 class RestaurantExternalDepartment(_Base):
     __tablename__ = "RestaurantExternalDepartment"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ed"
 
     """
@@ -233,8 +236,9 @@ class RestaurantExternalDepartment(_Base):
 class RestaurantExternalDepartmentWorkingHours(_Base):
     __tablename__ = "RestaurantExternalDepartmentWorkingHours"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "wh"
 
     """
@@ -274,8 +278,9 @@ class RestaurantExternalDepartmentWorkingHours(_Base):
 class RestaurantInternalDepartment(_Base):
     __tablename__ = "RestaurantInternalDepartment"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "id"
 
     """
@@ -336,8 +341,9 @@ class RestaurantInternalDepartment(_Base):
 class RestaurantInternalSubDepartment(_Base):
     __tablename__ = "RestaurantInternalSubDepartment"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "sd"
 
     """
@@ -375,8 +381,9 @@ class RestaurantInternalSubDepartment(_Base):
 class DefaultActorTaskDelegation(_Base):
     __tablename__ = "DefaultActorTaskDelegation"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "td"
 
     """
@@ -503,8 +510,9 @@ class DefaultActorTaskDelegation(_Base):
 class DefaultActor(_Base):
     __tablename__ = "DefaultActor"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "da"
 
     """
@@ -552,8 +560,9 @@ class DefaultActor(_Base):
 class TaskType(_Base):
     __tablename__ = "TaskType"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "tt"
 
     """
@@ -597,8 +606,9 @@ class TaskType(_Base):
 class TaskTypeGroup(_Base):
     __tablename__ = "TaskTypeGroup"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "yg"
 
     # columns
@@ -630,8 +640,9 @@ class TaskTypeGroup(_Base):
 class TaskTypeGroupType(_Base):
     __tablename__ = "TaskTypeGroupType"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "gt"
 
     # columns
@@ -661,8 +672,9 @@ class TaskTypeGroupType(_Base):
 class ActorAccessLevel(_Base):
     __tablename__ = "ActorAccessLevel"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "al"
 
     """
@@ -714,8 +726,9 @@ class ActorAccessLevel(_Base):
 class TaskTarget(_Base):
     __tablename__ = "TaskTarget"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ta"
 
     """
@@ -772,8 +785,9 @@ class TaskTarget(_Base):
 class TaskTargetType(_Base):
     __tablename__ = "TaskTargetType"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ay"
 
     # columns
@@ -799,8 +813,9 @@ class TaskTargetType(_Base):
 class TaskTargetTypeTarget(_Base):
     __tablename__ = "TaskTargetTypeTarget"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ya"
 
     # columns
@@ -828,8 +843,9 @@ class TaskTargetTypeTarget(_Base):
 class SubTask(_Base):
     __tablename__ = "SubTask"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "st"
 
     """
@@ -868,8 +884,9 @@ class SubTask(_Base):
 class User(_Base):
     __tablename__ = "User"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "us"
 
     """
@@ -893,8 +910,8 @@ class User(_Base):
         nullable=False,
         index=True
     )
-    role: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String,
+    role: _orm.Mapped[_types.enums.UserRole] = _orm.mapped_column(
+        _sql.Enum(_types.enums.UserRole),
         nullable=False,
         index=True
     )
@@ -931,6 +948,11 @@ class User(_Base):
     gender: _orm.Mapped[_t.Optional[bool]] = _orm.mapped_column(
         _sql.Boolean,
         nullable=True
+    )
+    birth_date: _orm.Mapped[_date] = _orm.mapped_column(
+        _sql.Date,
+        index=True,
+        nullable=False
     )
     address: _orm.Mapped[_t.Optional[str]] = _orm.mapped_column(
         _sql.String,
@@ -992,8 +1014,9 @@ class User(_Base):
 class Verification(_Base):
     __tablename__ = "Verification"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ve"
 
     """
@@ -1028,8 +1051,9 @@ class Verification(_Base):
 class RestaurantEmployeePosition(_Base):
     __tablename__ = "RestaurantEmployeePosition"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ep"
 
     """
@@ -1080,8 +1104,9 @@ class RestaurantEmployeePosition(_Base):
 class RestaurantEmployeePositionAccessLevel(_Base):
     __tablename__ = "RestaurantEmployeePositionAccessLevel"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "pl"
 
     """
@@ -1123,8 +1148,9 @@ class RestaurantEmployeePositionAccessLevel(_Base):
 class RestaurantEmployee(_Base):
     __tablename__ = "RestaurantEmployee"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "re"
 
     """
@@ -1188,8 +1214,9 @@ class RestaurantEmployee(_Base):
 class Customer(_Base):
     __tablename__ = "Customer"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "cu"
 
     # columns
@@ -1235,8 +1262,9 @@ class Material(_Base, _types.abstracts.ItemImplementation):
     Supplied consumables
     """
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ma"
 
     # columns
@@ -1306,8 +1334,9 @@ class Material(_Base, _types.abstracts.ItemImplementation):
 class MaterialStockBalance(_Base):
     __tablename__ = "MaterialStockBalance"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "sb"
 
     # columns
@@ -1343,8 +1372,9 @@ class MaterialStockBalance(_Base):
 class MaterialGroup(_Base):
     __tablename__ = "MaterialGroup"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "mg"
 
     # columns
@@ -1380,8 +1410,9 @@ class MaterialGroup(_Base):
 class MaterialSubGroup(_Base):
     __tablename__ = "MaterialSubGroup"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ms"
 
     # columns
@@ -1411,8 +1442,9 @@ class MaterialSubGroup(_Base):
 class Supply(_Base):
     __tablename__ = "Supply"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "sp"
 
     # columns
@@ -1450,8 +1482,9 @@ class Supply(_Base):
 class SupplyItem(_Base):
     __tablename__ = "SupplyItem"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "si"
 
     # columns
@@ -1489,8 +1522,9 @@ class SupplyItem(_Base):
 class Ingridient(_Base):
     __tablename__ = "Ingridient"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "in"
 
     """
@@ -1566,8 +1600,9 @@ class Ingridient(_Base):
 class IngridientMaterial(_Base):
     __tablename__ = "IngridientMaterial"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "im"
 
     """
@@ -1608,8 +1643,9 @@ class IngridientMaterial(_Base):
 class Product(_Base):
     __tablename__ = "Product"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "pr"
 
     """
@@ -1709,8 +1745,9 @@ class Product(_Base):
 class RestaurantProduct(_Base):
     __tablename__ = "RestaurantProduct"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "rp"
 
     """
@@ -1755,8 +1792,9 @@ class RestaurantProduct(_Base):
 class ProductIngridient(_Base):
     __tablename__ = "ProductIngridient"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "pi"
 
     """
@@ -1814,8 +1852,9 @@ class ProductIngridient(_Base):
 class CustomerFavoriteProduct(_Base):
     __tablename__ = "CustomerFavoriteProduct"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "fa"
 
     """
@@ -1852,8 +1891,9 @@ class CustomerFavoriteProduct(_Base):
 class CustomerShoppingCartProduct(_Base):
     __tablename__ = "CustomerShoppingCartProduct"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "sc"
 
     """
@@ -1899,8 +1939,9 @@ class CustomerShoppingCartProduct(_Base):
 class CustomerOrder(_Base):
     __tablename__ = "CustomerOrder"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "co"
 
     """
@@ -1959,8 +2000,9 @@ class CustomerOrder(_Base):
 class CustomerOrderProduct(_Base):
     __tablename__ = "CustomerOrderProduct"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "op"
 
     # columns
@@ -2052,8 +2094,9 @@ class CustomerOrderProduct(_Base):
 class OnlineOrder(_Base):
     __tablename__ = "OnlineOrder"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "oo"
 
     """
@@ -2084,8 +2127,9 @@ class OnlineOrder(_Base):
 class ProductAvailableExtraIngridient(_Base):
     __tablename__ = "ProductAvailableExtraIngridient"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ae"
 
     """
@@ -2130,8 +2174,9 @@ class ProductAvailableExtraIngridient(_Base):
 class CustomerOrderProductIngridientChange(_Base):
     __tablename__ = "CustomerOrderProductIngridientChange"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ic"
 
     """
@@ -2176,8 +2221,9 @@ class CustomerOrderProductIngridientChange(_Base):
 class CustomerOrderProductExtraIngridient(_Base):
     __tablename__ = "CustomerOrderExtraIngridient"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ei"
 
     """
@@ -2223,8 +2269,9 @@ class CustomerOrderProductExtraIngridient(_Base):
 class Table(_Base):
     __tablename__ = "Table"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "tb"
 
     """
@@ -2262,8 +2309,9 @@ class Table(_Base):
 class TableLocation(_Base):
     __tablename__ = "TableLocation"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "lo"
 
     """
@@ -2302,8 +2350,9 @@ class TableLocation(_Base):
 class WaiterOrder(_Base):
     __tablename__ = "WaiterOrder"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "wo"
 
     # columns
@@ -2338,8 +2387,9 @@ class WaiterOrder(_Base):
 class Salary(_Base):
     __tablename__ = "Salary"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "sy"
 
     # columns
@@ -2379,8 +2429,9 @@ class Salary(_Base):
 class AllergicFlag(_Base):
     __tablename__ = "AllergicFlag"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "af"
 
     """
@@ -2410,8 +2461,9 @@ class AllergicFlag(_Base):
 class MaterialAllergicFlag(_Base):
     __tablename__ = "MaterialAllergicFlag"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "mf"
 
     """
@@ -2445,8 +2497,9 @@ class MaterialAllergicFlag(_Base):
 class ProductCategory(_Base):
     __tablename__ = "ProductCategory"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "pc"
 
     """
@@ -2476,8 +2529,9 @@ class ProductCategory(_Base):
 class ProductCategoryProduct(_Base):
     __tablename__ = "ProductCategoryProduct"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "cp"
 
     # columns
@@ -2510,8 +2564,9 @@ class ProductCategoryProduct(_Base):
 class CustomerPayment(_Base):
     __tablename__ = "CustomerPayment"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "up"
 
     # columns
@@ -2548,8 +2603,9 @@ class CustomerPayment(_Base):
 class DiscountGroup(_Base):
     __tablename__ = "DiscountGroup"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "dg"
 
     """
@@ -2587,8 +2643,9 @@ class DiscountGroup(_Base):
 class Discount(_Base):
     __tablename__ = "Discount"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "di"
 
     """
@@ -2671,8 +2728,9 @@ class Discount(_Base):
 class RestaurantDiscount(_Base):
     __tablename__ = "RestaurantDiscount"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "rd"
 
     """
@@ -2709,8 +2767,9 @@ class RestaurantDiscount(_Base):
 class CustomerOrderDiscount(_Base):
     __tablename__ = "CustomerOrderDiscount"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "od"
 
     """
@@ -2741,8 +2800,9 @@ class CustomerOrderDiscount(_Base):
 class DiscountOption(_Base):
     __tablename__ = "DiscountOption"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "do"
 
     """
@@ -2782,8 +2842,9 @@ class DiscountOption(_Base):
 class DiscountOptionProduct(_Base):
     __tablename__ = "DiscountOptionProduct"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "dp"
 
     """
@@ -2815,8 +2876,9 @@ class DiscountOptionProduct(_Base):
 class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
     __tablename__ = "SupplyOrder"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "yo"
 
     """
@@ -2850,8 +2912,9 @@ class SupplyOrder(_Base, _types.abstracts.ItemImplementationCollection):
 class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
     __tablename__ = "SupplyOrderItem"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "yi"
 
     # columns
@@ -2896,8 +2959,9 @@ class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
 class WriteOffReason(_Base):
     __tablename__ = "WriteOffReason"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "fr"
 
     """
@@ -2938,8 +3002,9 @@ class WriteOffReason(_Base):
 class WriteOffReasonGroup(_Base):
     __tablename__ = "WriteOffReasonGroup"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "fg"
 
     # columns
@@ -2970,8 +3035,9 @@ class WriteOffReasonGroup(_Base):
 class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
     __tablename__ = "WriteOff"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "wf"
 
     # columns
@@ -3010,8 +3076,9 @@ class WriteOff(_Base, _types.abstracts.ItemImplementationCollection):
 class WriteOffItem(_Base, _types.abstracts.ItemImplementationRelation):
     __tablename__ = "WriteOffItem"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "wi"
 
     # columns
@@ -3049,8 +3116,9 @@ class WriteOffItem(_Base, _types.abstracts.ItemImplementationRelation):
 class SupplyPayment(_Base):
     __tablename__ = "SupplyPayment"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "yy"
 
     # columns
@@ -3087,8 +3155,9 @@ class SupplyPayment(_Base):
 class Tare(_Base, _types.abstracts.ItemImplementation):
     __tablename__ = "Tare"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "te"
 
     """
@@ -3143,8 +3212,9 @@ class Tare(_Base, _types.abstracts.ItemImplementation):
 class TareGroup(_Base):
     __tablename__ = "TareGroup"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "eg"
 
     # columns
@@ -3170,8 +3240,9 @@ class TareGroup(_Base):
 class Inventory(_Base, _types.abstracts.ItemImplementation):
     __tablename__ = "Inventory"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "iy"
 
     """
@@ -3215,8 +3286,9 @@ class Inventory(_Base, _types.abstracts.ItemImplementation):
 class InventoryGroup(_Base):
     __tablename__ = "InventoryGroup"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ng"
 
     # columns
@@ -3251,8 +3323,9 @@ class InventoryGroup(_Base):
 class InventorySubGroup(_Base):
     __tablename__ = "InventorySubGroup"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "ns"
 
     # columns
@@ -3282,8 +3355,9 @@ class InventorySubGroup(_Base):
 class Item(_Base, _types.abstracts.Item):
     __tablename__ = "Item"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "em"
 
     """
@@ -3321,8 +3395,9 @@ class Item(_Base, _types.abstracts.Item):
 class Task(_Base):
     __tablename__ = "Task"
 
+    @classmethod
     @property
-    def abbreviation(self):
+    def abbreviation(cls):
         return "tk"
 
     """
@@ -3563,3 +3638,12 @@ model = _t.Union[
     Item,
     Task
 ]
+
+
+def decipher_abbreviation(abbrevition: str) -> _t.Type[model]:
+    for var in globals().values():
+        if not hasattr(var, "abbreviation"):
+            continue
+        if var.abbreviation == abbrevition:
+            return var
+    raise ValueError(f"Can't find model with '{abbrevition}' abbreviation")

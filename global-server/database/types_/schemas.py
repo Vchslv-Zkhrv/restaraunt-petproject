@@ -1,7 +1,12 @@
+import typing as _t
 from datetime import time as _time
+from datetime import date as _date
+from datetime import datetime as _dt
 
 from pydantic import BaseModel as _Base
 from pydantic import Field as _Field
+
+from . import enums as _enums
 
 
 class _Schema(_Base):
@@ -50,3 +55,95 @@ class NutritionalValues(_Schema):
             fats=self.fats - other.fats,
             carbohydrates=self.carbohydrates - other.carbohydrates,
         )
+
+
+class Actor(_Schema):
+    id: int
+
+
+class DefaultActorCreate(_Schema):
+    name: str
+
+    @property
+    def abbreviation(self):
+        return "da"
+
+
+class DefaultActor(_Schema):
+    id: int
+    name: str
+    actor_id: int = _Field(alias="actorId")
+
+
+class UserCreate(_Schema):
+    hashed_password: str = _Field(alias="hashedPassword")
+    actor_id: int = _Field(alias="actorId")
+    role: _enums.UserRole
+    email: _t.Optional[str]
+    phone: int
+    telegram: _t.Optional[int]
+    lname: _t.Optional[str]
+    fname: str
+    sname: _t.Optional[str]
+    gender: bool
+    birth_date: _date = _Field(alias="birthDate")
+    address: _t.Optional[str]
+
+    @property
+    def abbreviation(self):
+        return "da"
+
+
+class UserFull(_Schema):
+    hashed_password: str = _Field(alias="hashedPassword")
+    actor_id: int = _Field(alias="actorId")
+    role: _enums.UserRole
+    email: _t.Optional[str]
+    phone: int
+    telegram: _t.Optional[int]
+    lname: _t.Optional[str]
+    fname: str
+    sname: _t.Optional[str]
+    gender: bool
+    birth_date: _date = _Field(alias="birthDate")
+    address: _t.Optional[str]
+    id: int
+    created: _dt
+    deleted: _dt
+    last_online: _dt = _Field(alias="lastOnline")
+
+
+class TaskTypeCreate(_Schema):
+    name: str
+
+    @property
+    def abbreviation(self):
+        return "tt"
+
+
+class TaskType(_Schema):
+    id: int
+    name: str
+
+
+class TaskTypeGroupCreate(_Schema):
+    name: str
+
+    @property
+    def abbreviation(self):
+        return "yg"
+
+
+class TaskTypeGroup(_Schema):
+    id: int
+    name: str
+
+
+class TaskTypeGroupWithTypes(TaskTypeGroup):
+    types: _t.List[TaskType]
+
+
+class TaskCreate(_Schema):
+    type_id: int = _Field("typeId")
+    name: str
+    comment: str
