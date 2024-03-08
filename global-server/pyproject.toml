@@ -3,7 +3,6 @@ name = "restaraunt-petproject/global-server"
 version = "0.1.0"
 description = ""
 authors = ["Vchslv-Zkhrv <vchslv.zkhrv@gmail.com>"]
-readme = "README.md"
 packages = [{include = "restaraunt_petproject"}]
 
 [tool.poetry.dependencies]
@@ -22,7 +21,6 @@ python-ulid = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.5.0"
-black = "^23.11.0"
 flake8 = "^6.1.0"
 
 

@@ -83,3 +83,12 @@ class ActorNotExistsError(ActorError):
 
 class ActorCreationError(ActorError):
     pass
+
+
+class GenerationError(Exception):
+    pass
+
+
+class GenerationPermitedError(GenerationError):
+
+    """Cannot generate default data in production mode"""
