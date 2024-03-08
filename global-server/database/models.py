@@ -497,14 +497,16 @@ class DefaultActorTaskDelegation(_Base):
         return attachments
 
     @_orm.validates("source")
-    def _validate_source(self, _, source_: str):
-        if not source_.startswith("self."):
+    def _validate_source(self, _, source: str):
+        if not source.startswith("self."):
             raise ValueError("Illegal source")
+        return source
 
     @_orm.validates("attachments_type_name")
     def _validate_attachments_type_name(self, _, name: str):
         if name not in globals():
             raise ValueError("Illegal attachments type name")
+        return name
 
 
 class DefaultActor(_Base):
@@ -536,7 +538,8 @@ class DefaultActor(_Base):
     name: _orm.Mapped[str] = _orm.mapped_column(
         _sql.String,
         unique=True,
-        index=True
+        index=True,
+        nullable=False
     )
 
     # relationships
@@ -555,6 +558,12 @@ class DefaultActor(_Base):
 
     restaurant_internal_department: _orm.Mapped[
         _t.Optional["RestaurantInternalDepartment"]] = _orm.relationship(back_populates="default_actor")
+
+    @_orm.validates("name")
+    def _validate_name(self, _, name: str):
+        if not name.isupper():
+            raise ValueError("Default actor's name must be in UPPER CASE")
+        return name
 
 
 class TaskType(_Base):
@@ -997,11 +1006,13 @@ class User(_Base):
             _validate_email(email, check_deliverability=False)
         except _EmailError:
             raise _types.exceptions.EmailValidationError
+        return email
 
     @_orm.validates("phone")
     def _validate_phone(self, _, phone: str):
         if not _re.match(_cfg.PHONE_VALIDATION_REGEX, phone):
             raise _types.exceptions.PhoneValidationError
+        return phone
 
     # todo: check tg user_id existence
 
@@ -1095,10 +1106,12 @@ class RestaurantEmployeePosition(_Base):
     def _validate_expierence_coefficient(self, k: str, v: float):
         _check_value(v, k, 1, "ge")
         _check_value(v, k, _cfg.MAX_EXPIERENCE_COEFFICIENT, "le")
+        return v
 
     @_orm.validates("salary")
     def _validate_salary(self, k: str, v: float):
         _check_value(v, k, 0, "gt")
+        return v
 
 
 class RestaurantEmployeePositionAccessLevel(_Base):
@@ -1253,6 +1266,7 @@ class Customer(_Base):
     @_orm.validates("bonuts_points")
     def _validate_bonus_points(self, k: str, v: float):
         _check_value(v, k, 0, "ge")
+        return v
 
 
 class Material(_Base, _types.abstracts.ItemImplementation):
@@ -1329,6 +1343,7 @@ class Material(_Base, _types.abstracts.ItemImplementation):
     @_orm.validates("price")
     def _validate_price(self, k: str, v: float):
         _check_value(v, k, 0, "gt")
+        return v
 
 
 class MaterialStockBalance(_Base):
@@ -1724,6 +1739,7 @@ class Product(_Base):
     @_orm.validates("price")
     def _validate_price(self, k: _t.Literal["price"], v: float):
         _check_value(v, k, 0, "gt")
+        return v
 
     @property
     def nutritianal_values(self) -> _types.schemas.NutritionalValues:
@@ -1847,6 +1863,7 @@ class ProductIngridient(_Base):
     @_orm.validates("edit_price", "max_change", "ip_ratio")
     def _validate_float_fields(self, k: str, v: float):
         _check_value(v, k, 0, "ge")
+        return v
 
 
 class CustomerFavoriteProduct(_Base):
@@ -1934,6 +1951,7 @@ class CustomerShoppingCartProduct(_Base):
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v: int):
         _check_value(v, k, 1, "ge")
+        return v
 
 
 class CustomerOrder(_Base):
@@ -2060,6 +2078,7 @@ class CustomerOrderProduct(_Base):
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v: int):
         _check_value(v, k, 1, "ge")
+        return v
 
     @property
     def allergic_flags(self) -> _t.Set[str]:
@@ -2169,6 +2188,7 @@ class ProductAvailableExtraIngridient(_Base):
     @_orm.validates("price")
     def _validate_price(self, k: _t.Literal["price"], v: float):
         _check_value(v, k, 0, "ge")
+        return v
 
 
 class CustomerOrderProductIngridientChange(_Base):
@@ -2216,6 +2236,7 @@ class CustomerOrderProductIngridientChange(_Base):
     @_orm.validates("ip_ratio_change")
     def _validate_iprc(self, k: _t.Literal["ip_ratio_change"], v: float):
         _check_value(v, k, 0, "ge")
+        return v
 
 
 class CustomerOrderProductExtraIngridient(_Base):
@@ -2264,6 +2285,7 @@ class CustomerOrderProductExtraIngridient(_Base):
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v: int):
         _check_value(v, k, 1, "ge")
+        return v
 
 
 class Table(_Base):
@@ -2950,6 +2972,7 @@ class SupplyOrderItem(_Base, _types.abstracts.ItemImplementationRelation):
     @_orm.validates("count")
     def _validate_count(self, k: _t.Literal["count"], v):
         _check_value(v, k, 1, "ge")
+        return v
 
     @property
     def _collection(self):  # ovverides abstract property
@@ -3207,6 +3230,7 @@ class Tare(_Base, _types.abstracts.ItemImplementation):
     @_orm.validates("price")
     def _validate_price(self, k: _t.Literal["price"], v: float):
         _check_value(v, k, 0, "gt")
+        return v
 
 
 class TareGroup(_Base):
@@ -3526,6 +3550,7 @@ class Task(_Base):
     @_orm.validates("start_execution", "complete_before")
     def _validate_dates(self, k: str, v: _dt):
         _check_value(v, k, _dt.utcnow(), "ge")
+        return v
 
     @property
     def is_started_late(self) -> bool:
