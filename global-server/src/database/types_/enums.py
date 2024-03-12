@@ -80,3 +80,13 @@ class ItemType(_Enum):
     tare = "tare"
     material = "material"
     inventory = "inventory"
+
+
+class TaskStatus(_Enum):
+    created = "created"
+    execution_started = "execution_started"
+    complited = "complited"
+    rejected = "rejected"
+    failed = "failed"
+    inspected = "inspected"
+    executed = "executed"

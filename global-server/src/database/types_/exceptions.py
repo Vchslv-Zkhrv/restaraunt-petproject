@@ -63,6 +63,16 @@ class PhoneValidationError(PersonalDataValidationError):
     """Phone has not passed primary validation"""
 
 
+class PasswordValidationError(PersonalDataValidationError):
+
+    """hashed_password has not passed primary validation"""
+
+
+class BirthDateValidationError(PersonalDataValidationError):
+
+    """birth_date has not passed primary validation"""
+
+
 class TelegramValidationError(PersonalDataValidationError):
 
     """Telegram has not passed primary validation"""

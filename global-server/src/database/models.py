@@ -1,7 +1,3 @@
-# file is ignored by the Black formatter but still meets the flake8 rules
-# it was made to improve readability
-
-
 """
 Module containing (only) sqlalchemy models.
 
@@ -16,7 +12,6 @@ from datetime import datetime as _dt
 from datetime import time as _time
 import uuid as _uuid
 
-import config as _cfg
 import passlib.hash as _hash
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
@@ -24,14 +19,13 @@ import sqlalchemy.schema as _schema
 import sqlalchemy.dialects.postgresql as _psql
 from email_validator import EmailNotValidError as _EmailError
 from email_validator import validate_email as _validate_email
-from typeguard import check_type as _check_type
 import ulid as _ulid
 
 from . import types_ as _types
 from .database import Base as _Base
+from .. import config as _cfg
 
 
-_T = _t.TypeVar("_T")
 _comprasion = _t.Literal["eq", "ne", "gt", "ge", "lt", "le"]
 
 
@@ -482,20 +476,6 @@ class DefaultActorTaskDelegation(_Base):
         {},
     )
 
-    def get_attachments(self, attachments_type: _T) -> _t.Generator[_T, None, None]:
-        # I'm not found any other ways to save type hinting
-        if attachments_type is not self.attachment_type:
-            raise TypeError("wrong attachments type")
-
-        # todo: find ways to replace
-        attachments = eval(
-            f"filter((lambda a: {self.filter_}), {self.source})",
-            {},
-            {"self": self},
-        )
-        _check_type(attachments, _t.Generator[_T, None, None])
-        return attachments
-
     @_orm.validates("source")
     def _validate_source(self, _, source: str):
         if not source.startswith("self."):
@@ -611,6 +591,9 @@ class TaskType(_Base):
             foreign_keys="DefaultActorTaskDelegation.outcoming_task_type_id"
     )
 
+    personal_access_levels: _orm.Mapped[
+        _t.List["ActorAccessLevel"]] = _orm.relationship(back_populates="task_type")
+
 
 class TaskTypeGroup(_Base):
     __tablename__ = "TaskTypeGroup"
@@ -641,9 +624,6 @@ class TaskTypeGroup(_Base):
 
     restaurant_employee_position_access_levels: _orm.Mapped[
         _t.List["RestaurantEmployeePositionAccessLevel"]] = _orm.relationship(back_populates="task_type_group")
-
-    personal_access_levels: _orm.Mapped[
-        _t.List["ActorAccessLevel"]] = _orm.relationship(back_populates="task_type_group")
 
 
 class TaskTypeGroupType(_Base):
@@ -687,7 +667,10 @@ class ActorAccessLevel(_Base):
         return "al"
 
     """
-    Personal access level issued by another actor
+    Personal access rights issued by another actor.
+
+    If selected_target_id specified, this access rights are disposable.
+    If revoked, this rights are invalid.
     """
 
     # columns
@@ -702,15 +685,16 @@ class ActorAccessLevel(_Base):
         nullable=False,
         index=True
     )
-    task_type_group_id: _orm.Mapped[int] = _orm.mapped_column(
+    task_type_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
-        _sql.ForeignKey("TaskTypeGroup.id"),
+        _sql.ForeignKey("TaskType.id"),
         nullable=False,
         index=True,
     )
     task_target_id: _orm.Mapped[int] = _orm.mapped_column(
         _sql.Integer,
         _sql.ForeignKey("TaskTarget.id"),
+        nullable=False,
         index=True,
         unique=True
     )
@@ -719,17 +703,27 @@ class ActorAccessLevel(_Base):
         nullable=False,
         index=True
     )
+    selected_target_id: _orm.Mapped[_t.Optional[int]] = _orm.mapped_column(
+        _sql.Integer,
+        _sql.ForeignKey("TaskTarget.id"),
+        nullable=True
+    )
 
     # relationships
 
     actor: _orm.Mapped[
         "Actor"] = _orm.relationship(back_populates="personal_access_levels")
 
-    task_type_group: _orm.Mapped[
-        "TaskTypeGroup"] = _orm.relationship(back_populates="personal_access_levels")
+    task_type: _orm.Mapped[
+        "TaskType"] = _orm.relationship(back_populates="personal_access_levels")
 
     task_target: _orm.Mapped[
-        "TaskTarget"] = _orm.relationship(back_populates="defining_access_level")
+        "TaskTarget"] = _orm.relationship(back_populates="defining_access_level", foreign_keys=[task_target_id])
+
+    selected_target: _orm.Mapped[
+        _t.Optional["TaskTarget"]] = _orm.relationship(
+            back_populates="target_in_disposable_actor_access_level", foreign_keys=[selected_target_id]
+        )
 
 
 class TaskTarget(_Base):
@@ -782,13 +776,20 @@ class TaskTarget(_Base):
         _t.Optional["SupplyPayment"]] = _orm.relationship(back_populates="task_target")
 
     defining_access_level: _orm.Mapped[
-        _t.Optional["ActorAccessLevel"]] = _orm.relationship(back_populates="task_target")
+        _t.Optional["ActorAccessLevel"]] = _orm.relationship(
+            back_populates="task_target", foreign_keys="ActorAccessLevel.task_target_id"
+        )
 
     discount_group: _orm.Mapped[
         _t.Optional["DiscountGroup"]] = _orm.relationship(back_populates="task_target")
 
     discount: _orm.Mapped[
         _t.Optional["Discount"]] = _orm.relationship(back_populates="task_target")
+
+    target_in_disposable_actor_access_level: _orm.Mapped[
+        _t.Optional["ActorAccessLevel"]] = _orm.relationship(
+            back_populates="selected_target", foreign_keys="ActorAccessLevel.selected_target_id"
+        )
 
 
 class TaskTargetType(_Base):
@@ -936,7 +937,7 @@ class User(_Base):
         index=True,
         nullable=True
     )
-    telegram: _orm.Mapped[int] = _orm.mapped_column(
+    telegram: _orm.Mapped[_t.Optional[int]] = _orm.mapped_column(
         _sql.Integer,
         unique=True,
         index=True,
@@ -976,7 +977,8 @@ class User(_Base):
     created: _orm.Mapped[_dt] = _orm.mapped_column(
         _sql.DateTime,
         nullable=False,
-        index=True
+        index=True,
+        default=_dt.utcnow,
     )
     deleted: _orm.Mapped[_t.Optional[_dt]] = _orm.mapped_column(
         _sql.DateTime,
@@ -1009,10 +1011,23 @@ class User(_Base):
         return email
 
     @_orm.validates("phone")
-    def _validate_phone(self, _, phone: str):
-        if not _re.match(_cfg.PHONE_VALIDATION_REGEX, phone):
+    def _validate_phone(self, _, phone: int):
+        if not _re.match(_cfg.PHONE_VALIDATION_REGEX, str(phone)):
             raise _types.exceptions.PhoneValidationError
         return phone
+
+    @_orm.validates("hashed_password")
+    def _validate_password(self, _, password: str):
+        if len(password) < 60:
+            raise _types.exceptions.PasswordValidationError
+        return password
+
+    @_orm.validates("birth_date")
+    def _validate_birth_date(self, _, birth_date: _date):
+        age = (_date.today() - birth_date).days / 365.25
+        if age < _cfg.CUSTOMER_MINIMAL_AGE:
+            raise _types.exceptions.BirthDateValidationError
+        return birth_date
 
     # todo: check tg user_id existence
 
@@ -3450,8 +3465,8 @@ class Task(_Base):
     comment: _orm.Mapped[str] = _orm.mapped_column(
         _sql.String
     )
-    status: _orm.Mapped[str] = _orm.mapped_column(
-        _sql.String,
+    status: _orm.Mapped[_types.enums.TaskStatus] = _orm.mapped_column(
+        _sql.Enum(_types.enums.TaskStatus),
         nullable=False,
         index=True
     )

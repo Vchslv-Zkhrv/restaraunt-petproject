@@ -1,9 +1,6 @@
 """
-Database CRUDS endpoints.
-
-All interaction with database must be procceeded here (not in models.py)
+Database base CRUD endpoints.
 """
-
 from sqlalchemy.ext.asyncio import AsyncSession as _Session
 
 from . import database as _db
@@ -17,7 +14,7 @@ async def get_session() -> _Session:  # pyright: ignore
         session.close()
 
 
-async def create_model[T: _models.model](model: T, se: _Session) -> T:
+async def _create_model[T: _models.model](se: _Session, model: T) -> T:
     se.add(model)
     await se.commit()
     await se.refresh(model)

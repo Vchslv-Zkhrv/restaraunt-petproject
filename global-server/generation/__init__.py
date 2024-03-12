@@ -1,12 +1,8 @@
-import typing as _t
-import sys as _sys
-
 from sqlalchemy.ext.asyncio import AsyncSession as _Session
 
-from .. import database as _db
-from .. import endpoints as _crud
-from .. import models as _models
-from . import reset as _reset
+from src.database import database as _db
+from src.database import endpoints as _crud
+from src.database import models as _models
 from . import general as _general
 
 
@@ -16,9 +12,10 @@ async def _create_task_types_groups(se: _Session) -> None:
         "order handling",
         "item operating",
         "user operating",
-        "warehouse operations"
+        "warehouse operations",
+        "actor rights operating"
     ):
-        await _crud.create_model(_models.TaskTypeGroup(name=name), se)
+        await _crud._create_model(se, _models.TaskTypeGroup(name=name))
 
 
 async def _create_task_types(se: _Session) -> None:
@@ -42,19 +39,21 @@ async def _create_task_types(se: _Session) -> None:
     await _general.create_task_type("item order", ["item operating", "warehouse operations"], se)
     await _general.create_task_type("item supply", ["item operating", "warehouse operations"], se)
     await _general.create_task_type("item movement", ["item operating", "warehouse operations"], se)
+    await _general.create_task_type("grant actor rights", ["actor rights operating"], se)
+    await _general.create_task_type("revoke actor rights", ["actor rights operating"], se)
 
 
-async def generate_default_data() -> _t.NoReturn:
+async def generate_default_data() -> None:
 
     # drop all tables and create new ones
-    await _reset.init_models()
+    await _general.init_models()
 
     async with _db.AsyncSession() as se:  # pyright: ignore
         se: _Session
 
-        await _reset.create_root(se)
-        await _general.create_default_actor("SYSTEM", se)
+        await _general.create_root(se)
         await _create_task_types_groups(se)
         await _create_task_types(se)
-
-    _sys.exit(0)
+        await _general.create_system_da(se)
+        actor = await _crud._create_model(se, _models.Actor())
+        await _crud._create_model(se, _models.DefaultActor(actor_id=actor.id, name="TEST"))

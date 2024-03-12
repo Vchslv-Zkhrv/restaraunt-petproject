@@ -7,4 +7,4 @@ setup
 .session
 *logs*
 *.env*
-
+*.pytest_cache*
